@@ -1,0 +1,69 @@
+
+.login {
+  max-width: 430px;
+  width: 100%;
+  margin: 1em auto;
+  padding: 2em;
+  background-color: var(--clr-bg-alt);
+  box-shadow: var(--shadow);
+  border-radius: 8px;
+  text-align: center;
+  justify-content: space-between; 
+}
+
+.login .reset-button {
+  margin-left: auto; /* Push the reset button to the right */
+}
+  .login h2 {
+    margin-right: 0.5em;
+    margin-bottom: 0.9em;
+  }
+  
+  .login form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .login label {
+    font-size: 0.9rem;
+    margin-bottom: 0.3em;
+  }
+  
+  .login input {
+    padding: 0.6em;
+    margin-bottom: 1em;
+    border: 1px solid var(--clr-fg-alt);
+    border-radius: 4px;
+  }
+  
+  .login button {
+    padding: 0.6em 1.2em;
+    background-color: var(--clr-primary);
+    color: var(--clr-bg-alt);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+  }
+  
+  .login button:hover {
+    background-color: var(--clr-fg);
+  }
+  
+  .login .btn--outline {
+ 
+    color: var(--clr-primary);
+    
+    background-color: var(--clr-bg-alt);
+    transition: color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+  }
+  
+  .login .btn--outline:hover {
+    color: var(--clr-bg-alt);
+    border-color: var(--clr-fg);
+  }
+  .login span.error {
+    font-size: 0.8rem; /* Adjust the font size as needed */
+    color: red;
+  }
+  

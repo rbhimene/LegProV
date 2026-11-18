@@ -1,0 +1,147 @@
+import axios from "axios"
+import { API_BASE_URL } from "../config";
+
+const BACKEND_DOMAIN = API_BASE_URL;
+
+const REGISTER_URL = `${BACKEND_DOMAIN}/api/v1/auth/users/`
+const LOGIN_URL = `${BACKEND_DOMAIN}/api/v1/auth/jwt/create/`
+const ACTIVATE_URL = `${BACKEND_DOMAIN}/api/v1/auth/users/activation/`
+const RESET_PASSWORD_URL = `${BACKEND_DOMAIN}/api/v1/auth/users/reset_password/`
+const RESET_PASSWORD_CONFIRM_URL = `${BACKEND_DOMAIN}/api/v1/auth/users/reset_password_confirm/`
+const GET_USER_INFO = `${BACKEND_DOMAIN}/api/v1/auth/users/me/`
+const PROJECTS_URL = `${BACKEND_DOMAIN}/api/projects/`;
+
+// Register user
+
+const register = async (userData) => {
+    const config = {
+        headers: {
+            "Content-type": "application/json"
+        }
+    }
+
+    const response = await axios.post(REGISTER_URL, userData, config)
+
+    return response.data
+}
+
+// Login user
+
+const login = async (userData) => {
+    const config = {
+        headers: {
+            "Content-type": "application/json"
+        }
+    }
+
+    const response = await axios.post(LOGIN_URL, userData, config)
+
+    if (response.data) {
+        localStorage.setItem("user", JSON.stringify(response.data))
+        localStorage.setItem("access", response.data.access);
+    }
+
+    return response.data
+}
+
+// Logout 
+
+const logout = () => {
+    localStorage.removeItem("user")
+    localStorage.removeItem("access")
+}
+
+// Activate user
+
+const activate = async (userData) => {
+    const config = {
+        headers: {
+            "Content-type": "application/json"
+        }
+    }
+
+    const response = await axios.post(ACTIVATE_URL, userData, config)
+
+    return response.data
+}
+
+// Reset Password
+
+const resetPassword = async (userData) => {
+    const config = {
+        headers: {
+            "Content-type": "application/json"
+        }
+    }
+
+    const response = await axios.post(RESET_PASSWORD_URL, userData, config)
+
+    return response.data
+}
+
+// Reset Password
+
+const resetPasswordConfirm = async (userData) => {
+    const config = {
+        headers: {
+            "Content-type": "application/json"
+        }
+    }
+
+    const response = await axios.post(RESET_PASSWORD_CONFIRM_URL, userData, config)
+
+    return response.data
+}
+
+// Get User Info
+
+const getUserInfo = async (accessToken) => {
+    const config = {
+        headers: {
+            "Authorization": `Bearer ${accessToken}`
+        }
+    }
+
+    const response = await axios.get(GET_USER_INFO, config)
+
+    return response.data
+}
+
+
+// Fetch projects
+const fetchProjects = async (userId, accessToken) => {
+    const config = {
+        headers: {
+            "Authorization": `Bearer ${accessToken}`
+        }
+    };
+
+    const response = await axios.get(PROJECTS_URL, config);
+    return response.data;
+};
+
+// Create Project
+const createProject = async (projectData) => {
+    const accessToken = localStorage.getItem('access');
+    if (!accessToken) {
+        throw new Error('Access token not found.');
+    }
+    const config = {
+      headers: {
+        "Content-type": "application/json",
+        "Authorization": `Bearer ${accessToken}` // Include the access token in the request headers
+      }
+    };
+  
+    try {
+      const response = await axios.post(PROJECTS_URL, projectData, config);
+      return response.data;
+    } catch (error) {
+      console.error('Error creating project:', error);
+      throw error; // Re-throw the error for handling in the component
+    }
+  };
+
+const authService = { register, login, logout, activate, resetPassword, resetPasswordConfirm, getUserInfo, createProject, fetchProjects}
+
+export default authService
