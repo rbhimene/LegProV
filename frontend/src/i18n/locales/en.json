@@ -7,7 +7,8 @@
     "save": "Save",
     "details": "Details",
     "view": "View",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "close": "Close"
   },
   "nav": {
     "samples": "sample workflows",
@@ -112,7 +113,8 @@
     "create": "Create User",
     "confirmDelete": "Are you sure you want to delete this user?",
     "passwordMismatch": "Passwords do not match.",
-    "error": "Something went wrong. Please try again."
+    "error": "Something went wrong. Please try again.",
+    "users": "Users"
   },
   "register": {
     "title": "Sign up",
@@ -123,5 +125,11 @@
     "haveAccount": "Already registered?",
     "mismatch": "Passwords do not match.",
     "error": "Registration failed. Please try again."
+  },
+    "validation": {
+    "required": "This field is required.",
+    "email": "Enter a valid email address.",
+    "minLength": "At least {{min}} characters.",
+    "mismatch": "Passwords do not match."
   }
 }

@@ -7,7 +7,8 @@
     "save": "Enregistrer",
     "details": "Détails",
     "view": "Voir",
-    "loading": "Chargement..."
+    "loading": "Chargement...",
+    "close": "Fermer"
   },
   "nav": {
     "samples": "exemples de processus",
@@ -112,7 +113,8 @@
     "create": "Créer l'utilisateur",
     "confirmDelete": "Êtes-vous sûr de vouloir supprimer cet utilisateur ?",
     "passwordMismatch": "Les mots de passe ne correspondent pas.",
-    "error": "Une erreur est survenue. Veuillez réessayer."
+    "error": "Une erreur est survenue. Veuillez réessayer.",
+    "users": "Utilisateurs"
   },
   "register": {
     "title": "Créer un compte",
@@ -123,5 +125,11 @@
     "haveAccount": "Déjà inscrit ?",
     "mismatch": "Les mots de passe ne correspondent pas.",
     "error": "L'inscription a échoué. Veuillez réessayer."
+  },
+    "validation": {
+    "required": "Ce champ est obligatoire.",
+    "email": "Saisissez une adresse e-mail valide.",
+    "minLength": "Au moins {{min}} caractères.",
+    "mismatch": "Les mots de passe ne correspondent pas."
   }
 }

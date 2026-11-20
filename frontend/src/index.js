@@ -6,6 +6,7 @@ import { store } from './app/store'
 import './index.css'
 import { LanguageProvider } from './contexts/language';
 import './i18n';
+import '@fontsource-variable/inter';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
