@@ -9,19 +9,17 @@ User = get_user_model()
 class CreateUserSerializer(UserCreateSerializer):
     num_projects = serializers.SerializerMethodField()
     num_completed_projects = serializers.SerializerMethodField()
-    
-    
 
     def get_num_projects(self, obj):
         return Project.objects.filter(owner=obj).count()
 
     def get_num_completed_projects(self, obj):
-        projects = Project.objects.filter(owner=obj)
-        completed_projects = 0
-        for project in projects:
-            if all(diagram.verified for diagram in project.diagrams.all()):
-                completed_projects += 1
-        return completed_projects
+        done = 0
+        for project in Project.objects.filter(owner=obj).prefetch_related('diagrams'):
+            diagrams = list(project.diagrams.all())
+            if diagrams and all(d.verified for d in diagrams):
+                done += 1
+        return done
     
     class Meta(UserCreateSerializer.Meta):
         model = User
@@ -75,5 +73,13 @@ class DiagramSerializer(serializers.ModelSerializer):
         if value.size > self.MAX_FILE_SIZE:
             raise serializers.ValidationError('The file is larger than 5 MB.')
         return value
+
+class CurrentUserSerializer(serializers.ModelSerializer):
+    """The logged-in user (GET/PATCH /api/v1/auth/users/me/). Only the names are editable."""
+
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'first_name', 'last_name', 'is_staff']
+        read_only_fields = ['id', 'email', 'is_staff']    
 
     

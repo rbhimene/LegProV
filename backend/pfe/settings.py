@@ -186,8 +186,8 @@ REQUIRE_EMAIL_ACTIVATION = env.bool("REQUIRE_EMAIL_ACTIVATION", default=False)
 DJOSER = {
     'LOGIN_FIELD': 'email',
     "USER_CREATE_PASSWORD_RETYPE": True,
-    "USERNAME_CHANGED_EMAIL_CONFIRMATION": True,
-    "PASSWORD_CHANGED_EMAIL_CONFIRMATION": True,
+    "USERNAME_CHANGED_EMAIL_CONFIRMATION": REQUIRE_EMAIL_ACTIVATION,
+    "PASSWORD_CHANGED_EMAIL_CONFIRMATION": REQUIRE_EMAIL_ACTIVATION,
     "SEND_CONFIRMATION_EMAIL": REQUIRE_EMAIL_ACTIVATION,
     "SEND_ACTIVATION_EMAIL": REQUIRE_EMAIL_ACTIVATION,
     "PASSWORD_RESET_CONFIRM_URL": "password/reset/confirm/{uid}/{token}",
@@ -198,7 +198,8 @@ DJOSER = {
     'SERIALIZERS': {
         'user_create': 'myapp.serializers.CreateUserSerializer',
         'user': "myapp.serializers.CreateUserSerializer",
-        'user_delete': "djoser.serializers.UserDeleteSerializer",    
+        'current_user': 'myapp.serializers.CurrentUserSerializer',
+        'user_delete': "djoser.serializers.UserDeleteSerializer",
     },
 }
 

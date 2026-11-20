@@ -26,9 +26,11 @@ from .verification.results import build_payload
 User = get_user_model()
 
 class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
+    """Admin-only user management: list, create, delete, (de)activate."""
+    queryset = User.objects.all().order_by('-date_joined')
     serializer_class = CreateUserSerializer
     permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
+    http_method_names = ['get', 'post', 'delete', 'head', 'options']
 
     def create(self, request, *args, **kwargs):
         """Admin creates a user. Uses the given password, or a random one if none."""
@@ -37,17 +39,26 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        # Accounts created by an admin are active at once (no activation email).
-        user.is_active = True
+        user.is_active = True   # created by an admin: no activation email
         user.save(update_fields=['is_active'])
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
-    @action(detail=True, methods=['delete'])
-    def delete_user(self, request, pk=None):
+    def destroy(self, request, *args, **kwargs):
+        if self.get_object() == request.user:
+            return Response({'detail': 'You cannot delete your own account.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        return super().destroy(request, *args, **kwargs)
+
+    @action(detail=True, methods=['post'])
+    def toggle_active(self, request, pk=None):
         user = self.get_object()
-        user.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        if user == request.user:
+            return Response({'detail': 'You cannot deactivate your own account.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        user.is_active = not user.is_active
+        user.save(update_fields=['is_active'])
+        return Response(self.get_serializer(user).data)
 
 class ProjectListCreateAPIView(generics.ListCreateAPIView):
     queryset = Project.objects.all()
