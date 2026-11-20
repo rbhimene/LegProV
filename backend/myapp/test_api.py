@@ -101,7 +101,17 @@ class OwnershipTests(APITestCase):
             f"/api/projects/{self.project.id}/create-diagrams/",
             {"name": "x", "description": "y",
              "file": SimpleUploadedFile("evil.exe", b"MZ")})
-        self.assertEqual(response.status_code, 400)     
+        self.assertEqual(response.status_code, 400)   
+
+    def test_last_result_hidden_from_other_users(self):
+        self.client.force_authenticate(self.bob)
+        r = self.client.get(f"/api/projects/{self.project.id}/diagrams/{self.diagram.id}/result/")
+        self.assertEqual(r.status_code, 404)
+
+    def test_last_result_empty_before_first_verification(self):
+        self.client.force_authenticate(self.alice)
+        r = self.client.get(f"/api/projects/{self.project.id}/diagrams/{self.diagram.id}/result/")
+        self.assertEqual(r.status_code, 204)      
 
 
 class RegistrationSecurityTests(APITestCase):
