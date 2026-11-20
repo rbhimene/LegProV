@@ -88,4 +88,10 @@ button {
   }
 }
 
+/* Element selected with "locate" in the verification page */
+.djs-element.verif-focus .djs-visual > :nth-child(1) {
+  stroke: #2563eb !important;
+  stroke-width: 4px !important;
+}
+
 
