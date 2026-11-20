@@ -8,7 +8,11 @@
     "details": "Details",
     "view": "View",
     "loading": "Loading...",
-    "close": "Close"
+    "close": "Close",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "open": "Open",
+    "search": "Search"
   },
   "nav": {
     "samples": "sample workflows",
@@ -29,7 +33,14 @@
     "thesis": "View thesis",
     "samplesTitle": "Sample Workflows",
     "contactTitle": "Contact",
-    "emailMe": "Email me"
+    "emailMe": "Email me",
+    "ctaStart": "Get started",
+    "familiesTitle": "What it detects",
+    "families": {
+      "mi": { "title": "Missing information", "desc": "Unlabelled conditions, unnamed roles, legal vacuums and incomplete intervals." },
+      "s":  { "title": "Structural errors", "desc": "Deadlocks and lack of synchronization caused by ambiguous “and” / “or” in the law." },
+      "c":  { "title": "Contradictions", "desc": "Tasks or conditions that contradict each other, or are ordered against their verbs." }
+    }
   },
   "samples": {
     "1": { "name": "Sample 1", "description": "Example process with its verified version and verification report." },
@@ -55,7 +66,13 @@
   },
   "dashboard": {
     "welcome": "Welcome",
-    "manageUsers": "Manage Users"
+    "manageUsers": "Manage Users",
+    "subtitle": "Manage your process models and verify them against the law.",
+    "newProject": "New project",
+    "searchPlaceholder": "Search projects...",
+    "noResults": "No project matches your search.",
+    "emptyTitle": "No projects yet",
+    "emptyText": "Create your first project to upload and verify BPMN diagrams."
   },
   "projects": {
     "mine": "My Projects",
@@ -66,7 +83,18 @@
     "nameLabel": "Name of project:",
     "descriptionLabel": "Description:",
     "submit": "Create project",
-    "errorFetch": "Failed to fetch projects."
+    "errorFetch": "Failed to fetch projects.",
+    "editTitle": "Edit project",
+    "created": "Project created.",
+    "updated": "Project updated.",
+    "deleted": "Project deleted.",
+    "errorSave": "Could not save the project.",
+    "errorDelete": "Could not delete the project.",
+    "deleteTitle": "Delete project",
+    "confirmDeleteNamed": "Delete “{{name}}” and all its diagrams? This cannot be undone.",
+    "updatedOn": "Updated {{date}}",
+    "diagramsCount_one": "{{count}} diagram",
+    "diagramsCount_other": "{{count}} diagrams"
   },
   "project": {
     "diagrams": "Diagrams",
@@ -126,10 +154,11 @@
     "mismatch": "Passwords do not match.",
     "error": "Registration failed. Please try again."
   },
-    "validation": {
+  "validation": {
     "required": "This field is required.",
     "email": "Enter a valid email address.",
     "minLength": "At least {{min}} characters.",
-    "mismatch": "Passwords do not match."
+    "mismatch": "Passwords do not match.",
+    "maxLength": "At most {{max}} characters."
   }
 }

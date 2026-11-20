@@ -7,7 +7,7 @@
   :root {
     --bg: 248 250 252;
     --surface: 255 255 255;
-    --border: 226 232 240;
+    --border: 203 213 225;
     --text: 15 23 42;
     --muted: 100 116 139;
     --primary: 37 99 235;
@@ -18,7 +18,7 @@
   .dark {
     --bg: 15 23 42;
     --surface: 30 41 59;
-    --border: 51 65 85;
+    --border: 71 85 105; 
     --text: 241 245 249;
     --muted: 148 163 184;
     --primary: 96 165 250;
@@ -33,7 +33,6 @@
 * {
   padding: 0;
   margin: 0;
-  border: 0;
   outline: 0;
   background-color: inherit;
   color: inherit;
