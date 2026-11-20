@@ -52,6 +52,8 @@ class Diagram(models.Model):
     verified = models.BooleanField(default=False)
     file = models.FileField(upload_to=diagram_directory_path)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='diagrams')  # Use `project` here
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    last_verified_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return self.name

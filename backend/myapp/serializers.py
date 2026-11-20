@@ -61,9 +61,19 @@ class ProjectSerializer(serializers.ModelSerializer):
         
 
 class DiagramSerializer(serializers.ModelSerializer):
+    MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
+
     class Meta:
         model = Diagram
-        fields = ['id', 'name', 'description', 'file', 'verified']  # Exclude 'project_id'
-        read_only_fields = ['project']
+        fields = ['id', 'name', 'description', 'file', 'verified', 'created_at', 'last_verified_at']
+        # Set by the server only (verified/last_verified_at change when a verification runs).
+        read_only_fields = ['verified', 'created_at', 'last_verified_at']
+
+    def validate_file(self, value):
+        if not value.name.lower().endswith('.bpmn'):
+            raise serializers.ValidationError('Only .bpmn files are accepted.')
+        if value.size > self.MAX_FILE_SIZE:
+            raise serializers.ValidationError('The file is larger than 5 MB.')
+        return value
 
     

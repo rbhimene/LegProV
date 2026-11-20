@@ -87,7 +87,21 @@ class OwnershipTests(APITestCase):
     def test_diagram_file_path_is_relative(self):
         self.diagram.refresh_from_db()
         self.assertFalse(os.path.isabs(self.diagram.file.name), self.diagram.file.name)
-        self.assertTrue(self.diagram.file.name.startswith("user_"))    
+        self.assertTrue(self.diagram.file.name.startswith("user_"))   
+
+    def test_diagram_list_has_dates(self):
+        self.client.force_authenticate(self.alice)
+        item = self.client.get(f"/api/projects/{self.project.id}/diagrams/").json()[0]
+        self.assertIsNotNone(item["created_at"])
+        self.assertIsNone(item["last_verified_at"])
+
+    def test_rejects_non_bpmn_upload(self):
+        self.client.force_authenticate(self.alice)
+        response = self.client.post(
+            f"/api/projects/{self.project.id}/create-diagrams/",
+            {"name": "x", "description": "y",
+             "file": SimpleUploadedFile("evil.exe", b"MZ")})
+        self.assertEqual(response.status_code, 400)     
 
 
 class RegistrationSecurityTests(APITestCase):

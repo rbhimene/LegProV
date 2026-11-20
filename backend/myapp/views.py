@@ -12,6 +12,7 @@ from rest_framework import generics, permissions, status, viewsets
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from django.utils.crypto import get_random_string
+from django.utils import timezone
 
 from .models import Project, Diagram
 from .serializers import ProjectSerializer, DiagramSerializer, CreateUserSerializer
@@ -157,7 +158,8 @@ def get_project_diagrams(request, project_id):
     diagrams = Diagram.objects.filter(project_id=project_id, project__owner=request.user)
     serialized_diagrams = [
         {'id': d.id, 'name': d.name, 'description': d.description,
-         'file': d.file.url, 'verified': d.verified}
+         'file': d.file.url, 'verified': d.verified,
+         'created_at': d.created_at, 'last_verified_at': d.last_verified_at}
         for d in diagrams
     ]
     return JsonResponse(serialized_diagrams, safe=False)
@@ -224,6 +226,7 @@ def verify_diagram(request, project_id, diagram_id):
 
         # Update diagram status
         diagram.verified = True
+        diagram.last_verified_at = timezone.now()
         diagram.save()
 
         logger.info("Diagram verified successfully")
