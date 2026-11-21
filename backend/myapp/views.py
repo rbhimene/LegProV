@@ -19,8 +19,7 @@ from .serializers import ProjectSerializer, DiagramSerializer, CreateUserSeriali
 from .verification.structural import message
 from .verification.missing_info import modify_bpmn_file
 from .verification.contradiction import erreur_contradiction
-from .rapport import generer_rapport
-from .rapportEng import generer_rapportENG
+from .verification.reports import generate_report
 from .verification.results import build_payload
 
 User = get_user_model()
@@ -195,8 +194,8 @@ def _run_checks(verified_path):
 
 def _write_reports(messages_fr, messages_en, folder, source_name):
     """Create report.docx (French) and reportENG.docx (English) in `folder`."""
-    generer_rapport(messages_fr, os.path.join(folder, 'report.docx'), source_name)
-    generer_rapportENG(messages_en, os.path.join(folder, 'reportENG.docx'), source_name)
+    generate_report(messages_fr, os.path.join(folder, 'report.docx'), source_name, 'fr')
+    generate_report(messages_en, os.path.join(folder, 'reportENG.docx'), source_name, 'en')
 
 
 @api_view(['POST'])
