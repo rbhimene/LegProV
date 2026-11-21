@@ -29,15 +29,13 @@ def get_nom_taches_role(bpmnfile,id):
    taches = []
    liste_elements = get_flow_node_refs_from_lane(bpmnfile,id)
    for i in liste_elements:
-     print(i)
-     print(get_element_type(i,bpmnfile))
      if("Activity" in i):
        taches.append(get_task(bpmnfile,i))
    return taches
 
 def get_participant_id_for_task(file_path, task_id):
     # Lire le fichier XML ligne par ligne
-    with open(file_path, 'r') as file:
+    with open(file_path, 'r', encoding='utf-8') as file:
         lines = file.readlines()
         xml_content = ''.join(lines)
     
@@ -94,7 +92,7 @@ def get_participant_id_for_task(file_path, task_id):
 
 def get_flow_node_refs_from_lane(bpmn_file_path, lane_id):
     flow_node_refs = []
-    with open(bpmn_file_path, 'r') as file:
+    with open(bpmn_file_path, 'r', encoding='utf-8') as file:
         lines = file.readlines()
     
     lane_start = False
@@ -123,7 +121,7 @@ def clean_list(string_list):
 def get_annotation_proxy(bpmnfile,id):
    loi = []
    id_list = []
-   with open(bpmnfile, 'r') as file:
+   with open(bpmnfile, 'r', encoding='utf-8') as file:
       lines = file.readlines()
    for line in lines:
       if((('sourceRef="'+id) in line) ):
@@ -152,7 +150,7 @@ def get_annotation_role(bpmnfile,id):
 
 def get_annotation(bpmn_file_path,id):
    msg = []
-   with open(bpmn_file_path, 'r') as file:
+   with open(bpmn_file_path, 'r', encoding='utf-8') as file:
         lines = file.readlines()
    for line in lines:
         if ("<association" in line) and (id in line):
@@ -165,7 +163,7 @@ def get_annotation(bpmn_file_path,id):
 
 def get_annotation2(bpmn_file_path,id):
    msg = ""
-   with open(bpmn_file_path, 'r') as file:
+   with open(bpmn_file_path, 'r', encoding='utf-8') as file:
         lines = file.readlines()
    for line in lines:
         if ("<association" in line) and (id in line):
@@ -180,7 +178,7 @@ def get_annotation2(bpmn_file_path,id):
 
 def get_annotation3(bpmn_file_path,id):
    msg = []
-   with open(bpmn_file_path, 'r') as file:
+   with open(bpmn_file_path, 'r', encoding='utf-8') as file:
         lines = file.readlines()
    for line in lines:
         if ("<association" in line) and (id in line):
@@ -192,7 +190,7 @@ def get_annotation3(bpmn_file_path,id):
 
 def get_all_tasks(bpmnfile):
     allTasks = []
-    with open(bpmnfile, 'r') as file:
+    with open(bpmnfile, 'r', encoding='utf-8') as file:
         lines = file.readlines()
     for i in lines:
         if("<task" in i):
@@ -202,7 +200,7 @@ def get_all_tasks(bpmnfile):
 
 def getids(bpmn_file_path):
    ids_list = []
-   with open(bpmn_file_path, 'r') as file:
+   with open(bpmn_file_path, 'r', encoding='utf-8') as file:
         lines = file.readlines()
    for line in lines:
         if ("<exclusiveGateway" in line):
@@ -212,7 +210,7 @@ def getids(bpmn_file_path):
 
 def getid_picine(bpmn_file_path):
    ids_list = []
-   with open(bpmn_file_path, 'r') as file:
+   with open(bpmn_file_path, 'r', encoding='utf-8') as file:
         lines = file.readlines()
    for line in lines:
         if ((("<participant" in line) and ("name=" not in line)) or (("<lane " in line) and ("name=" not in line))):
@@ -222,7 +220,7 @@ def getid_picine(bpmn_file_path):
 
 def getway_exclusive_valide(bpmnfile,id):
    cpt=0
-   with open(bpmnfile, 'r') as file:
+   with open(bpmnfile, 'r', encoding='utf-8') as file:
       lines = file.readlines()
    for line in lines:
       if(('targetRef="'+id+'"') in line):
@@ -234,7 +232,7 @@ def getway_exclusive_valide(bpmnfile,id):
    
 def getways_ids(bpmn_file_path):
    ids_list = []
-   with open(bpmn_file_path, 'r') as file:
+   with open(bpmn_file_path, 'r', encoding='utf-8') as file:
         lines = file.readlines()
    for line in lines:
         if ("<exclusiveGateway" in line) and (("name=" not in line)):
@@ -245,7 +243,7 @@ def getways_ids(bpmn_file_path):
 
 # --- detectors -----------------------------------------------------------
 def negative_event(bpmnfile):
-   with open(bpmnfile, 'r') as file:
+   with open(bpmnfile, 'r', encoding='utf-8') as file:
       lines = file.readlines()
    ids_list = []
    target_list=[]
@@ -291,7 +289,7 @@ def getways_ids2(bpmn_file_path,err):
    ids_list = []
    content = []
    messageENG = []
-   with open(bpmn_file_path, 'r') as file:
+   with open(bpmn_file_path, 'r', encoding='utf-8') as file:
         lines = file.readlines()
    ids_list = getids(bpmn_file_path)
    message = []
@@ -312,7 +310,6 @@ def getways_ids2(bpmn_file_path,err):
             message.append("erreur MI"+str(err)+"#: il manque le cas de inferieur# voire l'article "+get_annotation(bpmn_file_path,i).__str__())
           if("=" not in content.__str__() and ("egale" not in content.__str__())):
             err += 1 
-            print("belkacem")
             messageENG.append("Error MI "+str(err)+"# the case of equal is missing# see the article "+get_annotation(bpmn_file_path,i).__str__()) 
             message.append("Erreur MI "+str(err)+"# il manque le cas de egale# voire l'article "+get_annotation(bpmn_file_path,i).__str__())
             colorier_task(bpmn_file_path,i)
@@ -333,9 +330,8 @@ def colorier_picine(id,liste):
    return liste
 
 def modify_bpmn_file(bpmn_file_path):
-    print('hello')
     err = 0
-    with open(bpmn_file_path, 'r') as file:
+    with open(bpmn_file_path, 'r', encoding='utf-8') as file:
         lines = file.readlines()
     id_values = getways_ids(bpmn_file_path)
     ids_picine = getid_picine(bpmn_file_path)
@@ -345,7 +341,7 @@ def modify_bpmn_file(bpmn_file_path):
     messageENG =[]
     for id in id_values:
        err += 1
-       with open(bpmn_file_path, 'r') as file:
+       with open(bpmn_file_path, 'r', encoding='utf-8') as file:
          lines = file.readlines()
        for line in lines:
            if (id in line)and("<exclusiveGateway" in line):
@@ -366,16 +362,16 @@ def modify_bpmn_file(bpmn_file_path):
        else:
           messageENG.append("Error MI " +str(err)+"# Missing condition #This part is not annotated on the diagram#Add the correct condition")
           message.append("Erreur MI " +str(err)+"# Condition manquante #Cette partie est Non annoter sur le diagramme#Ajouter la condition adéquate")
-       with open(bpmn_file_path, 'w') as file:
+       with open(bpmn_file_path, 'w', encoding='utf-8') as file:
             file.truncate(0)
             file.writelines(modified_lines)
        modified_lines = []
-    with open(bpmn_file_path, 'r') as file:
+    with open(bpmn_file_path, 'r', encoding='utf-8') as file:
       lines2 = file.readlines()
     modified_lines = []
     if(ids_picine.__len__()>0):
       for i in ids_picine:
-            with open(bpmn_file_path, 'r') as file:
+            with open(bpmn_file_path, 'r', encoding='utf-8') as file:
                  lines2 = file.readlines()
             modified_lines = []
             for j in lines2:
@@ -385,7 +381,6 @@ def modify_bpmn_file(bpmn_file_path):
                 
                 modified_lines.append(modified_line)
                 if(get_annotation_role(bpmn_file_path,i).__len__() >0):
-                 print("chikour" + get_annotation_role(bpmn_file_path,i).__str__() )
                  messageENG.append("Error MI " +str(err)+"# Missing role # Role not specified in the article : "+get_annotation_role(bpmn_file_path,i).__str__()+"#Revise the article : "+get_annotation_role(bpmn_file_path,i).__str__()+" Add the appropriate role to these tasks :"+get_nom_taches_role(bpmn_file_path,i).__str__())
                  message.append("Erreur MI " +str(err)+"# Role manquant # Role non précisé dans l'article : "+get_annotation_role(bpmn_file_path,i).__str__()+"#Reviser l'article : "+get_annotation_role(bpmn_file_path,i).__str__()+" Ajouter le rôle adéquat a ces taches :"+get_nom_taches_role(bpmn_file_path,i).__str__())
                 else:
@@ -394,18 +389,16 @@ def modify_bpmn_file(bpmn_file_path):
               else:
                 modified_lines.append(j)
       
-            with open(bpmn_file_path, 'w') as file:
+            with open(bpmn_file_path, 'w', encoding='utf-8') as file:
               file.truncate(0)
               file.writelines(modified_lines)
               modified_lines = []
-    with open(bpmn_file_path, 'r') as file:
+    with open(bpmn_file_path, 'r', encoding='utf-8') as file:
       lines3 = file.readlines()
     negative = negative_event(bpmn_file_path)
-    print(negative)
     for id in negative:
        for line in lines3:
           if(("<intermediateCatchEvent" in line)and(id in line)):
-             print("hahahaha")
              err += 1
              modified_line = re.sub(r'name=""', r'name="erreur MI'+str(err)+'"', line)
              #message.append("erreur MI #" +str(err)+" negative event")
@@ -417,10 +410,10 @@ def modify_bpmn_file(bpmn_file_path):
           else:
              modified_lines.append(line)
     if(modified_lines):
-     with open(bpmn_file_path, 'w') as file:
+     with open(bpmn_file_path, 'w', encoding='utf-8') as file:
          file.truncate(0)
          file.writelines(modified_lines)
-    with open(bpmn_file_path, 'r') as file:
+    with open(bpmn_file_path, 'r', encoding='utf-8') as file:
         lines = file.readlines()
     modified_lines = []
     all_tasks = get_all_tasks(bpmn_file_path)
@@ -434,7 +427,6 @@ def modify_bpmn_file(bpmn_file_path):
             messageENG.append("Error MI " +str(err)+"# Legal vacuum #"+"Legal vacuum in the article : "+get_annotation_proxy(bpmn_file_path,i).__str__()+"#Revise the article : "+get_annotation_proxy(bpmn_file_path,i).__str__()+" and Add adequate information")  
             message.append("Erreur MI " +str(err)+"# Vide juridique #"+"Vide juridique dans l'article : "+get_annotation_proxy(bpmn_file_path,i).__str__()+"#Reviser l'article : "+get_annotation_proxy(bpmn_file_path,i).__str__()+" et Ajouter des informations adéquates")  
             #message.append("Erreur MI " +str(err)+"# Vide juridique # Vide juridique dans l'article : "+get_annotation_proxy(bpmn_file_path,i).__str__()+" # Reviser l'article : "+get_annotation_proxy(bpmn_file_path,i).__str__()+" Ajouter des information à :"+get_annotation_proxy(bpmn_file_path,i).__str__())
-            print(message.__str__())
             colorier_task(bpmn_file_path,i)
     message1 , message2= getways_ids2(bpmn_file_path,err)
     return message1 + message , message2+messageENG 

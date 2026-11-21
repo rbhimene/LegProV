@@ -1,89 +1,43 @@
-import { useEffect, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { FaEllipsisV } from 'react-icons/fa';
-import api from '../../api';
-import './CardAndPage.css';
+import { useTranslation } from 'react-i18next';
+import { FaEdit, FaFolderOpen, FaTrash } from 'react-icons/fa';
+import { buttonClasses } from '../ui/Button';
 
-/** One project card with edit / delete menu. */
-const ProjectCard = ({ project, onProjectUpdated, onProjectDeleted }) => {
-  const { t } = useTranslation();
-  const [isEditing, setIsEditing] = useState(false);
-  const [form, setForm] = useState({ name: project.name, description: project.description });
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const menuRef = useRef(null);
-
-  // Close the menu when clicking elsewhere.
-  useEffect(() => {
-    const onClickOutside = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
-    };
-    document.addEventListener('mousedown', onClickOutside);
-    return () => document.removeEventListener('mousedown', onClickOutside);
-  }, []);
-
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-
-  const handleUpdate = async () => {
-    try {
-      const { data } = await api.put(`/api/projects/${project.id}/`, form);
-      setIsEditing(false);
-      onProjectUpdated(data);
-    } catch (e) {
-      console.error('Failed to update project:', e.response?.data || e.message);
-    }
-  };
-
-  const confirmDelete = async () => {
-    try {
-      await api.delete(`/api/projects/${project.id}/`);
-      onProjectDeleted(project.id);
-    } catch (e) {
-      console.error('Failed to delete project:', e.message);
-    }
-    setShowDeleteModal(false);
-  };
+/** One project: name, description, diagram count, last update, actions. */
+const ProjectCard = ({ project, onEdit, onDelete }) => {
+  const { t, i18n } = useTranslation();
+  const date = new Date(project.updated_at).toLocaleDateString(i18n.language);
+  const iconButton = 'rounded-lg p-2 text-muted transition hover:bg-bg';
 
   return (
-    <div className="project-card">
-      {isEditing ? (
-        <>
-          <input type="text" name="name" value={form.name} onChange={handleChange} />
-          <textarea name="description" value={form.description} onChange={handleChange} />
-          <button onClick={handleUpdate}>{t('common.save')}</button>
-          <button onClick={() => setIsEditing(false)}>{t('common.cancel')}</button>
-        </>
-      ) : (
-        <>
-          <div className="card-header">
-            <h3 className="project__description">{project.name}</h3>
-            <FaEllipsisV className="menu-icon" onClick={() => setMenuOpen(!menuOpen)} />
-            <div ref={menuRef} className={`menu ${menuOpen ? 'open' : ''}`}>
-              <button onClick={() => { setIsEditing(true); setMenuOpen(false); }}>{t('common.edit')}</button>
-              <button onClick={() => { setShowDeleteModal(true); setMenuOpen(false); }}>{t('common.delete')}</button>
-            </div>
-          </div>
-          <p>{project.description}</p>
-          <p className="diag_number">{t('projects.diagramCount')} {project.num_diagrams}</p>
-          <Link to={`/dashboard/project/${project.id}`} className="btn-details">
-            {t('common.details')}
-          </Link>
-        </>
-      )}
-
-      {showDeleteModal && (
-        <div className="confirmation-modal" onClick={() => setShowDeleteModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <p>{t('projects.confirmDelete')}</p>
-            <div className="modal-buttons">
-              <button onClick={() => setShowDeleteModal(false)}>{t('common.cancel')}</button>
-              <button onClick={confirmDelete}>{t('common.confirm')}</button>
-            </div>
-          </div>
+    <article className="flex flex-col rounded-2xl border border-border bg-surface p-5 shadow-sm transition hover:shadow-md">
+      <div className="flex items-start justify-between gap-2">
+        <h3 className="break-words text-lg font-semibold">{project.name}</h3>
+        <div className="flex shrink-0">
+          <button type="button" onClick={() => onEdit(project)} aria-label={t('common.edit')}
+            className={`${iconButton} hover:text-primary`}>
+            <FaEdit />
+          </button>
+          <button type="button" onClick={() => onDelete(project)} aria-label={t('common.delete')}
+            className={`${iconButton} hover:text-danger`}>
+            <FaTrash />
+          </button>
         </div>
-      )}
-    </div>
+      </div>
+
+      <p className="mt-2 line-clamp-3 flex-1 text-sm text-muted">{project.description}</p>
+
+      <div className="mt-4 flex items-center justify-between text-xs text-muted">
+        <span className="rounded-full bg-bg px-2.5 py-1 font-medium">
+          {t('projects.diagramsCount', { count: project.num_diagrams })}
+        </span>
+        <span>{t('projects.updatedOn', { date })}</span>
+      </div>
+
+      <Link to={`/dashboard/project/${project.id}`} className={`${buttonClasses('secondary')} mt-4`}>
+        <FaFolderOpen aria-hidden="true" /> {t('common.open')}
+      </Link>
+    </article>
   );
 };
 

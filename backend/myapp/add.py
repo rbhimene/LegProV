@@ -1,6 +1,6 @@
 def get_annotation_for_participant(file_path, participant_id):
     # Lire le fichier XML ligne par ligne
-    with open(file_path, 'r') as file:
+    with open(file_path, 'r', encoding='utf-8') as file:
         lines = file.readlines()
         xml_content = ''.join(lines)
     

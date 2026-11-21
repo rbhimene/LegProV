@@ -13,9 +13,9 @@ urlpatterns = [
   path("api/projects/", views.ProjectListCreateAPIView.as_view(), name="project-list-create"),
   path("api/projects/<int:project_id>/create-diagrams/", views.DiagramListCreateAPIView.as_view(), name='diagram-list-create'),
   path("api/projects/<int:project_id>/diagrams/<int:id>/", views.DiagramDetailAPIView.as_view(), name="diagram-detail"),
-  path('api/projects/<int:project_id>/diagrams/<int:diagram_id>/info/', views.get_diagram, name='get_diagram'),
   path("api/projects/<int:pk>/", views.ProjectDetailAPIView.as_view(), name="project-detail"),
   path("api/projects/<int:project_id>/diagrams/", views.get_project_diagrams, name="get_project_diagrams"),
+  path("api/projects/<int:project_id>/diagrams/<int:diagram_id>/result/", views.get_last_result, name="get_last_result"),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

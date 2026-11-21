@@ -7,7 +7,13 @@
     "save": "Save",
     "details": "Details",
     "view": "View",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "close": "Close",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "open": "Open",
+    "search": "Search",
+    "skipToContent": "Skip to content"
   },
   "nav": {
     "samples": "sample workflows",
@@ -18,7 +24,22 @@
     "newProject": "New Project",
     "logout": "Logout",
     "toggleNav": "Toggle navigation",
-    "toggleTheme": "Toggle theme"
+    "toggleTheme": "Toggle theme",
+    "profile": "Profile",
+    "users": "Users",
+    "language": "Language"
+  },
+  "session": { "expired": "Your session has expired. Please sign in again." },
+  "activate": {
+    "title": "Account activation",
+    "loading": "Activating your account…",
+    "success": "Your account is active. You can now sign in.",
+    "error": "This activation link is invalid or has already been used."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "text": "The page you are looking for does not exist.",
+    "home": "Back to home"
   },
   "home": {
     "title": "Legal BPMN Process, ",
@@ -28,7 +49,14 @@
     "thesis": "View thesis",
     "samplesTitle": "Sample Workflows",
     "contactTitle": "Contact",
-    "emailMe": "Email me"
+    "emailMe": "Email me",
+    "ctaStart": "Get started",
+    "familiesTitle": "What it detects",
+    "families": {
+      "mi": { "title": "Missing information", "desc": "Unlabelled conditions, unnamed roles, legal vacuums and incomplete intervals." },
+      "s":  { "title": "Structural errors", "desc": "Deadlocks and lack of synchronization caused by ambiguous “and” / “or” in the law." },
+      "c":  { "title": "Contradictions", "desc": "Tasks or conditions that contradict each other, or are ordered against their verbs." }
+    }
   },
   "samples": {
     "1": { "name": "Sample 1", "description": "Example process with its verified version and verification report." },
@@ -54,7 +82,13 @@
   },
   "dashboard": {
     "welcome": "Welcome",
-    "manageUsers": "Manage Users"
+    "manageUsers": "Manage Users",
+    "subtitle": "Manage your process models and verify them against the law.",
+    "newProject": "New project",
+    "searchPlaceholder": "Search projects...",
+    "noResults": "No project matches your search.",
+    "emptyTitle": "No projects yet",
+    "emptyText": "Create your first project to upload and verify BPMN diagrams."
   },
   "projects": {
     "mine": "My Projects",
@@ -65,7 +99,18 @@
     "nameLabel": "Name of project:",
     "descriptionLabel": "Description:",
     "submit": "Create project",
-    "errorFetch": "Failed to fetch projects."
+    "errorFetch": "Failed to fetch projects.",
+    "editTitle": "Edit project",
+    "created": "Project created.",
+    "updated": "Project updated.",
+    "deleted": "Project deleted.",
+    "errorSave": "Could not save the project.",
+    "errorDelete": "Could not delete the project.",
+    "deleteTitle": "Delete project",
+    "confirmDeleteNamed": "Delete “{{name}}” and all its diagrams? This cannot be undone.",
+    "updatedOn": "Updated {{date}}",
+    "diagramsCount_one": "{{count}} diagram",
+    "diagramsCount_other": "{{count}} diagrams"
   },
   "project": {
     "diagrams": "Diagrams",
@@ -83,7 +128,29 @@
     "errorCreate": "Failed to create diagram.",
     "errorDelete": "Failed to delete diagram.",
     "selectFile": "Please select a file.",
-    "confirmDelete": "Are you sure you want to delete this diagram?"
+    "confirmDelete": "Are you sure you want to delete this diagram?",
+    "back": "All projects",
+    "addDiagram": "Add diagram",
+    "uploadTitle": "Add a diagram",
+    "emptyTitle": "No diagrams yet",
+    "emptyText": "Upload a BPMN file to check it for missing information, structural errors and contradictions.",
+    "statusVerified": "Verified",
+    "statusPending": "Not verified",
+    "addedOn": "Added",
+    "lastVerified": "Last verification",
+    "never": "Never",
+    "verifyOpen": "Open & verify",
+    "dropHere": "Drop your .bpmn file here",
+    "dropOr": "or click to browse",
+    "replaceFile": "Click or drop to replace",
+    "onlyBpmn": "Only .bpmn files are accepted.",
+    "tooLarge": "The file is larger than 5 MB.",
+    "emptyFile": "The file is empty.",
+    "created": "Diagram added.",
+    "deleted": "Diagram deleted.",
+    "deleteTitle": "Delete diagram",
+    "confirmDeleteNamed": "Delete “{{name}}”? Its verification results and reports will be lost.",
+    "actions": "Actions"
   },
   "verif": {
     "title": "LegProV: Legal Process Verification",
@@ -97,7 +164,34 @@
     "c": "Contradictions:",
     "noErrors": "No errors found",
     "errorLoad": "Could not load the diagram.",
-    "errorVerify": "Verification failed. Please try again."
+    "errorVerify": "Verification failed. Please try again.",
+    "backProject": "Back to project",
+    "runVerify": "Run verification",
+    "reverify": "Verify again",
+    "verifying": "Verifying…",
+    "done": "Verification complete.",
+    "checkLocal": "Check a local file",
+    "localBanner": "Local file: it is checked but not saved in your project.",
+    "backToSaved": "Back to the saved diagram",
+    "notVerified": "Not verified yet",
+    "verifiedOn": "Verified on {{date}}",
+    "emptyTitle": "No results yet",
+    "emptyText": "Run the verification to detect missing information, structural errors and contradictions.",
+    "allClear": "No error found. This model passes all checks.",
+    "errorsFound_one": "{{count}} error found",
+    "errorsFound_other": "{{count}} errors found",
+    "all": "All",
+    "legend": "Highlighted in the diagram (click to locate)",
+    "familyMi": "Missing information",
+    "familyS": "Structural",
+    "familyC": "Contradictions",
+    "legal": "Legal interpretation",
+    "recommendation": "Recommendation",
+    "reportFr": "Report (FR)",
+    "reportEn": "Report (EN)",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "fit": "Fit to screen"
   },
   "users": {
     "title": "User Management",
@@ -112,7 +206,45 @@
     "create": "Create User",
     "confirmDelete": "Are you sure you want to delete this user?",
     "passwordMismatch": "Passwords do not match.",
-    "error": "Something went wrong. Please try again."
+    "error": "Something went wrong. Please try again.",
+    "users": "Users",
+    "subtitle": "Create, deactivate and remove accounts.",
+    "searchPlaceholder": "Search by name or email...",
+    "addUser": "Add user",
+    "createTitle": "Add a user",
+    "name": "Name",
+    "role": "Role",
+    "status": "Status",
+    "admin": "Admin",
+    "member": "Member",
+    "active": "Active",
+    "inactive": "Inactive",
+    "you": "you",
+    "activate": "Activate",
+    "deactivate": "Deactivate",
+    "actions": "Actions",
+    "created": "User created.",
+    "updated": "User updated.",
+    "deleted": "User deleted.",
+    "deleteTitle": "Delete user",
+    "confirmDeleteNamed": "Delete {{name}} ({{email}}) with all their projects and diagrams? This cannot be undone.",
+    "emptyTitle": "No users",
+    "noResults": "No user matches your search."
+  },
+  "profile": {
+    "title": "My profile",
+    "subtitle": "Manage your personal information and your password.",
+    "personal": "Personal information",
+    "emailHint": "Your email is your login and cannot be changed here.",
+    "saveChanges": "Save changes",
+    "saved": "Profile updated.",
+    "passwordTitle": "Change password",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "confirmNewPassword": "Confirm new password",
+    "changePassword": "Change password",
+    "passwordChanged": "Password changed.",
+    "error": "Could not save your changes."
   },
   "register": {
     "title": "Sign up",
@@ -123,5 +255,12 @@
     "haveAccount": "Already registered?",
     "mismatch": "Passwords do not match.",
     "error": "Registration failed. Please try again."
+  },
+  "validation": {
+    "required": "This field is required.",
+    "email": "Enter a valid email address.",
+    "minLength": "At least {{min}} characters.",
+    "mismatch": "Passwords do not match.",
+    "maxLength": "At most {{max}} characters."
   }
 }

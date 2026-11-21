@@ -1,34 +1,39 @@
-import { createContext, useEffect, useState } from 'react'
-import PropTypes from 'prop-types'
+import { createContext, useEffect, useState } from 'react';
 
-const ThemeContext = createContext()
+const ThemeContext = createContext();
+
+const getInitialTheme = () => {
+  try {
+    const saved = localStorage.getItem('themeName');
+    if (saved) return saved;
+  } catch (e) {
+    // localStorage unavailable
+  }
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+};
 
 const ThemeProvider = ({ children }) => {
-  const [themeName, setThemeName] = useState('light')
+  const [themeName, setThemeName] = useState(getInitialTheme);
 
   useEffect(() => {
-    const darkMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    setThemeName(darkMediaQuery.matches ? 'dark' : 'light')
-    darkMediaQuery.addEventListener('change', (e) => {
-      setThemeName(e.matches ? 'dark' : 'light')
-    });
-  }, [])
+    document.documentElement.classList.toggle('dark', themeName === 'dark');
+  }, [themeName]);
 
   const toggleTheme = () => {
-    const name = themeName === 'dark' ? 'light' : 'dark'
-    localStorage.setItem('themeName', name)
-    setThemeName(name)
-  }
+    const next = themeName === 'dark' ? 'light' : 'dark';
+    try {
+      localStorage.setItem('themeName', next);
+    } catch (e) {
+      // ignore
+    }
+    setThemeName(next);
+  };
 
   return (
     <ThemeContext.Provider value={[{ themeName, toggleTheme }]}>
       {children}
     </ThemeContext.Provider>
-  )
-}
+  );
+};
 
-ThemeProvider.propTypes = {
-  children: PropTypes.node.isRequired,
-}
-
-export { ThemeProvider, ThemeContext }
+export { ThemeProvider, ThemeContext };

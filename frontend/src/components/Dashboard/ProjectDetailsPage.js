@@ -1,158 +1,172 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'react-toastify';
+import { FaArrowLeft, FaDownload, FaPlus, FaProjectDiagram, FaTrash } from 'react-icons/fa';
 import api from '../../api';
 import { API_BASE_URL } from '../../config';
-import './ProjectDetailsPage.css';
+import Button, { buttonClasses } from '../ui/Button';
+import ConfirmDialog from '../ui/ConfirmDialog';
+import EmptyState from '../ui/EmptyState';
+import UploadDiagramModal from './UploadDiagramModal';
 
-/** One project: its diagrams (download, view/verify, delete) and the upload form. */
-const ProjectDetailsPage = () => {
+/** Small coloured pill: green when verified, grey otherwise. */
+const StatusBadge = ({ verified }) => {
   const { t } = useTranslation();
-  const { projectId } = useParams();
-  const navigate = useNavigate();
-  const fileInputRef = useRef(null);
+  return (
+    <span
+      className={
+        'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ' +
+        (verified ? 'bg-success/10 text-success' : 'bg-bg text-muted')
+      }
+    >
+      <span className={`h-1.5 w-1.5 rounded-full ${verified ? 'bg-success' : 'bg-muted'}`} />
+      {verified ? t('project.statusVerified') : t('project.statusPending')}
+    </span>
+  );
+};
 
-  const [projectName, setProjectName] = useState('');
-  const [diagrams, setDiagrams] = useState([]);
-  const [loading, setLoading] = useState(true);
+/** One project: its diagrams (status, dates, open/verify, download, delete) and the upload modal. */
+const ProjectDetailsPage = () => {
+  const { t, i18n } = useTranslation();
+  const { projectId } = useParams();
+
+  const [project, setProject] = useState(null);
+  const [diagrams, setDiagrams] = useState(null); // null = loading
   const [error, setError] = useState('');
-  const [newDiagram, setNewDiagram] = useState({ name: '', description: '', file: null });
-  const [activeDropdown, setActiveDropdown] = useState(null);
-  const [diagramToDelete, setDiagramToDelete] = useState(null);
+  const [uploadOpen, setUploadOpen] = useState(false);
+  const [toDelete, setToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
-    setLoading(true);
     setError('');
     try {
-      const [project, list] = await Promise.all([
+      const [p, d] = await Promise.all([
         api.get(`/api/projects/${projectId}/`),
         api.get(`/api/projects/${projectId}/diagrams/`),
       ]);
-      setProjectName(project.data.name);
-      setDiagrams(list.data);
+      setProject(p.data);
+      setDiagrams(d.data);
     } catch (e) {
       setError(t('project.errorFetch'));
-    } finally {
-      setLoading(false);
+      setDiagrams([]);
     }
   }, [projectId, t]);
 
   useEffect(() => { load(); }, [load]);
 
-  // Close the row menu when clicking elsewhere.
-  useEffect(() => {
-    const onClickOutside = (e) => {
-      if (!e.target.closest('.dropdown')) setActiveDropdown(null);
-    };
-    document.addEventListener('mousedown', onClickOutside);
-    return () => document.removeEventListener('mousedown', onClickOutside);
-  }, []);
-
-  const handleCreate = async (e) => {
-    e.preventDefault();
-    setError('');
-    if (!newDiagram.file) return setError(t('project.selectFile'));
-    const formData = new FormData();
-    formData.append('name', newDiagram.name);
-    formData.append('description', newDiagram.description);
-    formData.append('file', newDiagram.file);
-    try {
-      await api.post(`/api/projects/${projectId}/create-diagrams/`, formData);
-      setNewDiagram({ name: '', description: '', file: null });
-      if (fileInputRef.current) fileInputRef.current.value = '';
-      load();
-    } catch (err) {
-      setError(t('project.errorCreate'));
-    }
-  };
+  const rows = useMemo(() => [...(diagrams || [])].sort((a, b) => b.id - a.id), [diagrams]);
+  const formatDate = (iso) => (iso ? new Date(iso).toLocaleDateString(i18n.language) : '—');
 
   const confirmDelete = async () => {
+    setDeleting(true);
     try {
-      await api.delete(`/api/projects/${projectId}/diagrams/${diagramToDelete}/`);
-      setDiagrams((prev) => prev.filter((d) => d.id !== diagramToDelete));
-    } catch (err) {
-      setError(t('project.errorDelete'));
+      await api.delete(`/api/projects/${projectId}/diagrams/${toDelete.id}/`);
+      setDiagrams((prev) => prev.filter((d) => d.id !== toDelete.id));
+      toast.success(t('project.deleted'));
+      setToDelete(null);
+    } catch (e) {
+      toast.error(t('project.errorDelete'));
+    } finally {
+      setDeleting(false);
     }
-    setDiagramToDelete(null);
-    setActiveDropdown(null);
   };
 
+  const iconButton = 'rounded-lg p-2 text-muted transition hover:bg-bg';
+
   return (
-    <div className="container">
-      <div className="main-body">
-        <div className="project-details">
-          <h2 className="project-name">{projectName}</h2>
-          {loading ? (
-            <p>{t('project.loading')}</p>
-          ) : (
-            <div className="diagram-list">
-              {error && <p className="error">{error}</p>}
-              <h3>{t('project.diagrams')}:</h3>
-              <table className="diagram-table">
-                <thead>
-                  <tr>
-                    <th>{t('project.name')}</th>
-                    <th>{t('project.description')}</th>
-                    <th>{t('project.verified')}</th>
-                    <th>{t('project.file')}</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {diagrams.map((diagram) => (
-                    <tr key={diagram.id} className="diagram-item">
-                      <td>{diagram.name}</td>
-                      <td>{diagram.description}</td>
-                      <td>{diagram.verified ? '✔️' : '❌'}</td>
-                      <td>
-                        <a href={`${API_BASE_URL}${diagram.file}`} target="_blank" rel="noopener noreferrer">
-                          {t('project.download')}
+    <div>
+      <Link to="/dashboard" className="inline-flex items-center gap-2 text-sm text-muted hover:text-text">
+        <FaArrowLeft aria-hidden="true" /> {t('project.back')}
+      </Link>
+
+      <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h1 className="break-words text-2xl font-bold">{project ? project.name : '…'}</h1>
+          {project && <p className="mt-1 max-w-2xl text-sm text-muted">{project.description}</p>}
+        </div>
+        <Button onClick={() => setUploadOpen(true)}>
+          <FaPlus aria-hidden="true" /> {t('project.addDiagram')}
+        </Button>
+      </div>
+
+      {error && (
+        <div role="alert" className="mt-6 rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
+          {error}
+        </div>
+      )}
+
+      <div className="mt-6">
+        {diagrams === null ? (
+          <div className="space-y-3" aria-busy="true">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="h-16 animate-pulse rounded-xl border border-border bg-surface" />
+            ))}
+          </div>
+        ) : rows.length === 0 && !error ? (
+          <EmptyState
+            icon={FaProjectDiagram}
+            title={t('project.emptyTitle')}
+            text={t('project.emptyText')}
+            action={<Button onClick={() => setUploadOpen(true)}><FaPlus aria-hidden="true" /> {t('project.addDiagram')}</Button>}
+          />
+        ) : (
+          <div className="overflow-x-auto rounded-2xl border border-border bg-surface">
+            <table className="w-full min-w-[720px] text-left text-sm">
+              <thead className="border-b border-border text-xs uppercase tracking-wide text-muted">
+                <tr>
+                  <th className="px-4 py-3 font-medium">{t('project.name')}</th>
+                  <th className="px-4 py-3 font-medium">{t('project.verified')}</th>
+                  <th className="px-4 py-3 font-medium">{t('project.addedOn')}</th>
+                  <th className="px-4 py-3 font-medium">{t('project.lastVerified')}</th>
+                  <th className="px-4 py-3 text-right font-medium">{t('project.actions')}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {rows.map((d) => (
+                  <tr key={d.id} className="hover:bg-bg/60">
+                    <td className="max-w-xs px-4 py-3">
+                      <p className="truncate font-medium">{d.name}</p>
+                      <p className="truncate text-xs text-muted">{d.description}</p>
+                    </td>
+                    <td className="px-4 py-3"><StatusBadge verified={d.verified} /></td>
+                    <td className="px-4 py-3 text-muted">{formatDate(d.created_at)}</td>
+                    <td className="px-4 py-3 text-muted">
+                      {d.last_verified_at ? formatDate(d.last_verified_at) : t('project.never')}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-1">
+                        <Link to={`/dashboard/project/${projectId}/verify/${d.id}`} className={buttonClasses('primary', 'sm')}>
+                          {t('project.verifyOpen')}
+                        </Link>
+                        <a href={`${API_BASE_URL}${d.file}`} download aria-label={t('project.download')}
+                          className={`${iconButton} hover:text-primary`}>
+                          <FaDownload />
                         </a>
-                      </td>
-                      <td>
-                        <div className="dropdown">
-                          <button className="dropbtn"
-                            onClick={() => setActiveDropdown(activeDropdown === diagram.id ? null : diagram.id)}>⋮</button>
-                          {activeDropdown === diagram.id && (
-                            <div className="dropdown-content">
-                              <button onClick={() => setDiagramToDelete(diagram.id)}>{t('common.delete')}</button>
-                              <button onClick={() => navigate(`/dashboard/project/${projectId}/verify/${diagram.id}`)}>
-                                {t('common.view')}
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
-              <form onSubmit={handleCreate} className="create-diagram-form">
-                <h4>{t('project.createNew')}</h4>
-                <input type="text" placeholder={t('project.diagramName')} value={newDiagram.name}
-                  onChange={(e) => setNewDiagram({ ...newDiagram, name: e.target.value })}
-                  required autoComplete="off" />
-                <textarea placeholder={t('project.diagramDescription')} value={newDiagram.description}
-                  onChange={(e) => setNewDiagram({ ...newDiagram, description: e.target.value })}
-                  required autoComplete="off" />
-                <input type="file" accept=".bpmn" ref={fileInputRef}
-                  onChange={(e) => setNewDiagram({ ...newDiagram, file: e.target.files[0] })} required />
-                <button type="submit">{t('project.create')}</button>
-              </form>
-            </div>
-          )}
-        </div>
+                        <button type="button" onClick={() => setToDelete(d)} aria-label={t('common.delete')}
+                          className={`${iconButton} hover:text-danger`}>
+                          <FaTrash />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
-      <div className={`modal ${diagramToDelete ? 'show' : ''}`} onClick={() => setDiagramToDelete(null)}>
-        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-          <span className="close" onClick={() => setDiagramToDelete(null)}>&times;</span>
-          <p>{t('project.confirmDelete')}</p>
-          <button className="button cancel" onClick={() => setDiagramToDelete(null)}>{t('common.cancel')}</button>
-          <button className="button confirm" onClick={confirmDelete}>{t('common.confirm')}</button>
-        </div>
-      </div>
+      <UploadDiagramModal open={uploadOpen} projectId={projectId} onClose={() => setUploadOpen(false)} onSaved={load} />
+      <ConfirmDialog
+        open={Boolean(toDelete)}
+        title={t('project.deleteTitle')}
+        message={t('project.confirmDeleteNamed', { name: toDelete?.name })}
+        confirmLabel={t('common.delete')}
+        loading={deleting}
+        onConfirm={confirmDelete}
+        onClose={() => setToDelete(null)}
+      />
     </div>
   );
 };

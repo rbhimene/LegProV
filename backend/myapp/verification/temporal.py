@@ -1,19 +1,27 @@
 # happensB.py
 import spacy
+import logging
 from googletrans import Translator
 # Charger le modèle de langue anglais de spaCy
 nlp = spacy.load("en_core_web_sm")
 
+logger = logging.getLogger(__name__)
+
 
 def translate_if_french(text):
-    translator = Translator()
-    detected_lang = translator.detect(text).lang
-    
-    if detected_lang == 'fr':
-        translated = translator.translate(text, src='fr', dest='en')
-        return translated.text
-    else:
-        return text
+    """
+    Return `text` in English (translated if detected as French, unchanged otherwise).
+    Uses the online Google Translate service; if it is unreachable, the original
+    text is used and a warning is logged, instead of crashing the verification.
+    """
+    try:
+        translator = Translator()
+        if translator.detect(text).lang == 'fr':
+            return translator.translate(text, src='fr', dest='en').text
+    except Exception as exc:
+        logger.warning("Translation unavailable, using the original text: %s", exc)
+    return text
+
 # Dictionnaire des relations temporelles des verbes
 temporal_relations = {
     "write": ["send", "submit", "publish", "review"],
@@ -53,8 +61,7 @@ temporal_relations = {
     "decide": ["plan", "execute", "complete"],
     "train": ["execute", "evaluate"],
     "learn": ["apply", "review"],
-    "fill out" : ["submit","Publish"],
-    "complete" : ["submit"],
+    "fill": ["submit", "publish"],
     "apply": ["review", "execute"],
     "negotiate": ["finalize", "agree"],
     "agree": ["execute", "complete"],
@@ -133,6 +140,8 @@ def happens_before(sent1, sent2):
     :param sent2: str - The second sentence
     :return: bool - True if sent1 happens before sent2, False otherwise
     """
+    if not sent1 or not sent2:
+        return None
     doc1 = nlp(translate_if_french(sent1))
     doc2 = nlp(translate_if_french(sent2))
 

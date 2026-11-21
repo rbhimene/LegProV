@@ -1,70 +1,81 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { login, reset, getUserInfo } from '../../features/authSlice';
-import './Login.css';
+import { login, reset } from '../../features/authSlice';
+import { EMAIL_RE } from '../../lib/forms';
+import Button from '../ui/Button';
+import Field from '../ui/Field';
 
 const Login = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { user, isError } = useSelector((state) => state.auth);
   const location = useLocation();
+  const { user, isLoading, isError } = useSelector((state) => state.auth);
 
-  const [formData, setFormData] = useState({ email: '', password: '' });
-  const [emailError, setEmailError] = useState('');
-  const [passwordError, setPasswordError] = useState('');
-  const [userError, setUserError] = useState('');
-  const { email, password } = formData;
+  const [form, setForm] = useState({ email: '', password: '' });
+  const [errors, setErrors] = useState({});
+  const redirectTo = location.state?.from?.pathname || '/dashboard';
+
+  useEffect(() => {
+    if (user) navigate(redirectTo, { replace: true });
+  }, [user, navigate, redirectTo]);
+
+  useEffect(() => {
+    if (isError) {
+      setErrors({ _form: t('login.errors.invalidCredentials') });
+      dispatch(reset());
+    }
+  }, [isError, dispatch, t]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    // Clear the error of the edited field and the general error.
-    if (name === 'email') setEmailError('');
-    if (name === 'password') setPasswordError('');
-    setUserError('');
+    setForm({ ...form, [e.target.name]: e.target.value });
+    setErrors({ ...errors, [e.target.name]: undefined, _form: undefined });
+  };
+
+  const validate = () => {
+    const e = {};
+    if (!form.email.trim()) e.email = t('validation.required');
+    else if (!EMAIL_RE.test(form.email)) e.email = t('validation.email');
+    if (!form.password) e.password = t('validation.required');
+    return e;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!email) return setEmailError(t('login.errors.emailRequired'));
-    if (!password) return setPasswordError(t('login.errors.passwordRequired'));
-    dispatch(login({ email, password }));
+    const found = validate();
+    setErrors(found);
+    if (Object.keys(found).length === 0) dispatch(login(form));
   };
 
-  useEffect(() => {
-    if (isError) setUserError(t('login.errors.invalidCredentials'));
-    if (user) {
-      dispatch(getUserInfo()); // loads first name / email for the dashboard
-      navigate('/dashboard');
-    }
-    dispatch(reset());
-  }, [isError, user, navigate, dispatch, t, i18n.language]);
-
   return (
-    <div className={`login ${i18n.language}`}>
-      <button type='button' className='btn btn--outline reset-button'
-        onClick={() => { setFormData({ email: '', password: '' }); setEmailError(''); setPasswordError(''); setUserError(''); }}>
-        X
-      </button>
-      <h2>{t('login.title')}</h2>
-      <form onSubmit={handleSubmit}>
-        {location.state?.registered && <span className="success">{t('login.registered')}</span>}
-        {userError && <span className='error'>{userError}</span>}
-        <label htmlFor='email'>{t('login.email')}</label>
-        <input type='email' id='email' name='email' onChange={handleChange} value={email} required />
-        {emailError && <span className='error'>{emailError}</span>}
-        <label htmlFor='password'>{t('login.password')}</label>
-        <input type='password' id='password' name='password' onChange={handleChange}
-          value={password} required autoComplete='current-password' />
-        {passwordError && <span className='error'>{passwordError}</span>}
-        <button type='submit'>{t('login.signIn')}</button>
-        <p style={{ marginTop: '1em' }}>
-          {t('login.noAccount')} <Link to="/register" className="link">{t('register.title')}</Link>
-        </p>
+    <div className="mx-auto w-full max-w-md rounded-2xl border border-border bg-surface p-8 shadow-sm">
+      <h1 className="mb-6 text-2xl font-bold">{t('login.title')}</h1>
+
+      {location.state?.registered && (
+        <div role="status" className="mb-4 rounded-lg border border-success/30 bg-success/10 px-3 py-2 text-sm text-success">
+          {t('login.registered')}
+        </div>
+      )}
+      {errors._form && (
+        <div role="alert" className="mb-4 rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
+          {errors._form}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} noValidate className="space-y-4">
+        <Field label={t('login.email')} type="email" name="email" value={form.email}
+          onChange={handleChange} error={errors.email} autoComplete="email" required />
+        <Field label={t('login.password')} type="password" name="password" value={form.password}
+          onChange={handleChange} error={errors.password} autoComplete="current-password" required />
+        <Button type="submit" loading={isLoading} className="w-full">{t('login.signIn')}</Button>
       </form>
+
+      <p className="mt-6 text-center text-sm text-muted">
+        {t('login.noAccount')}{' '}
+        <Link to="/register" className="font-medium text-primary hover:underline">{t('register.title')}</Link>
+      </p>
     </div>
   );
 };

@@ -5,28 +5,31 @@ import shutil
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.files.storage import FileSystemStorage, default_storage
+from django.core.files.storage import default_storage
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions, status, viewsets
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from django.utils.crypto import get_random_string
+from django.utils import timezone
 
 from .models import Project, Diagram
 from .serializers import ProjectSerializer, DiagramSerializer, CreateUserSerializer
 from .verification.structural import message
 from .verification.missing_info import modify_bpmn_file
 from .verification.contradiction import erreur_contradiction
-from .rapport import generer_rapport
-from .rapportEng import generer_rapportENG
+from .verification.reports import generate_report
+from .verification.results import build_payload
 
 User = get_user_model()
 
 class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
+    """Admin-only user management: list, create, delete, (de)activate."""
+    queryset = User.objects.all().order_by('-date_joined')
     serializer_class = CreateUserSerializer
     permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
+    http_method_names = ['get', 'post', 'delete', 'head', 'options']
 
     def create(self, request, *args, **kwargs):
         """Admin creates a user. Uses the given password, or a random one if none."""
@@ -35,17 +38,26 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        # Accounts created by an admin are active at once (no activation email).
-        user.is_active = True
+        user.is_active = True   # created by an admin: no activation email
         user.save(update_fields=['is_active'])
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
-    @action(detail=True, methods=['delete'])
-    def delete_user(self, request, pk=None):
+    def destroy(self, request, *args, **kwargs):
+        if self.get_object() == request.user:
+            return Response({'detail': 'You cannot delete your own account.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        return super().destroy(request, *args, **kwargs)
+
+    @action(detail=True, methods=['post'])
+    def toggle_active(self, request, pk=None):
         user = self.get_object()
-        user.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        if user == request.user:
+            return Response({'detail': 'You cannot deactivate your own account.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        user.is_active = not user.is_active
+        user.save(update_fields=['is_active'])
+        return Response(self.get_serializer(user).data)
 
 class ProjectListCreateAPIView(generics.ListCreateAPIView):
     queryset = Project.objects.all()
@@ -157,7 +169,8 @@ def get_project_diagrams(request, project_id):
     diagrams = Diagram.objects.filter(project_id=project_id, project__owner=request.user)
     serialized_diagrams = [
         {'id': d.id, 'name': d.name, 'description': d.description,
-         'file': d.file.url, 'verified': d.verified}
+         'file': d.file.url, 'verified': d.verified,
+         'created_at': d.created_at, 'last_verified_at': d.last_verified_at}
         for d in diagrams
     ]
     return JsonResponse(serialized_diagrams, safe=False)
@@ -166,153 +179,102 @@ def get_project_diagrams(request, project_id):
 logger = logging.getLogger(__name__)
 
 
+MAX_UPLOAD_BYTES = 5 * 1024 * 1024
+
+
+def _run_checks(verified_path):
+    """Run the MI, S and C checks on `verified_path` (modified in place: colours, names).
+    Returns (french_messages, english_messages)."""
+    loi = os.path.join(settings.MEDIA_ROOT, 'loi.txt')
+    arts, arts_en = message(verified_path, verified_path, loi)
+    annotation, annotation_en = modify_bpmn_file(verified_path)
+    contradiction, contradiction_en = erreur_contradiction(verified_path)
+    return arts + annotation + contradiction, arts_en + annotation_en + contradiction_en
+
+
+def _write_reports(messages_fr, messages_en, folder, source_name):
+    """Create report.docx (French) and reportENG.docx (English) in `folder`."""
+    generate_report(messages_fr, os.path.join(folder, 'report.docx'), source_name, 'fr')
+    generate_report(messages_en, os.path.join(folder, 'reportENG.docx'), source_name, 'en')
+
+
 @api_view(['POST'])
 def verify_diagram(request, project_id, diagram_id):
-    try:
-        logger.info(f"Verifying diagram {diagram_id} for project {project_id}")
-
-        # Fetch the diagram object
-        diagram = Diagram.objects.get(
-            id=diagram_id, project_id=project_id, project__owner=request.user)
-
-        # Construct paths
-        user_folder = f'user_{request.user.id}'
-        project_folder = f'project_{project_id}'
-        diagram_folder = f'diagram_{diagram_id}'
-        diagram_folder_path = os.path.join(settings.MEDIA_ROOT, user_folder, project_folder, diagram_folder)
-
-        # Ensure the diagram directory exists
-        if not os.path.exists(diagram_folder_path):
-            logger.error(f"Diagram directory not found: {diagram_folder_path}")
-            return HttpResponse(status=404, content="Diagram directory not found")
-
-        # Find the BPMN file in the directory
-        diagram_file = next((file_name for file_name in os.listdir(diagram_folder_path) if file_name.endswith('.bpmn')), None)
-
-        # Ensure a diagram file is found
-        if not diagram_file:
-            logger.error("Diagram file not found")
-            return HttpResponse(status=404, content="Diagram file not found")
-
-        # Path to the original diagram file
-        original_file_path = os.path.join(diagram_folder_path, diagram_file)
-        logger.info(f"Original file path: {original_file_path}")
-
-        # Copy the original file to create a verified version
-        verified_file_path = os.path.join(diagram_folder_path, 'verified_diagram.bpmn')
-        shutil.copyfile(original_file_path, verified_file_path)
-
-        # Perform verification on the copied file
-        arts ,artsENG = message(verified_file_path, verified_file_path, os.path.join(settings.MEDIA_ROOT, 'loi.txt'))
-        annotation ,annotationENG= modify_bpmn_file(verified_file_path)
-        err_contradiction , err_contradictionENG= erreur_contradiction(verified_file_path)
-        liste_finale = arts + annotation + err_contradiction
-        liste_finaleENG = artsENG + annotationENG+ err_contradictionENG
-
-        # Generate report
-        report_name = 'report.docx'
-        report_nameENG = 'reportENG.docx'
-        report_path = os.path.join(diagram_folder_path, report_name)
-        report_pathENG = os.path.join(diagram_folder_path, report_nameENG)
-        generer_rapport(liste_finale, report_path, diagram_file)
-        generer_rapportENG(liste_finaleENG, report_pathENG, diagram_file)
-
-        # Save annotations to a file
-        with open(os.path.join(diagram_folder_path, "diagram_annotations.txt"), 'a') as f:
-            for item in annotation:
-                f.write(item + "\n")
-
-        # Update diagram status
-        diagram.verified = True
-        diagram.save()
-
-        logger.info("Diagram verified successfully")
-
-        # Construct the URL to the verified file
-        verified_file_url = default_storage.url(os.path.join(user_folder, project_folder, diagram_folder, 'verified_diagram.bpmn'))
-        report_file_url = default_storage.url(os.path.join(user_folder, project_folder, diagram_folder, report_name))
-
-        return JsonResponse({'filename': verified_file_url, 'report_url': report_file_url, 'annotations': liste_finale})
-    
-    except Diagram.DoesNotExist:
-        logger.error(f"Diagram {diagram_id} does not exist for project {project_id}")
-        return HttpResponse(status=404, content=f"Diagram {diagram_id} does not exist for project {project_id}")
-
-    except Exception as e:
-        logger.error(f"Error verifying diagram: {e}", exc_info=True)
-        return HttpResponse(status=500, content="Internal Server Error")
-    
-
-@api_view(['GET'])
-def get_diagram(request, project_id, diagram_id):
-    """Return the URL of the original (or verified) .bpmn file of a diagram."""
+    """Verify a stored diagram, save the result on it and return it."""
     diagram = get_object_or_404(
         Diagram, id=diagram_id, project_id=project_id, project__owner=request.user)
-    diagram_folder_path = os.path.join(
-        settings.MEDIA_ROOT, f'user_{request.user.id}',
-        f'project_{project_id}', f'diagram_{diagram_id}')
+    original_path = diagram.file.path
+    if not os.path.exists(original_path):
+        return Response({'detail': 'The diagram file is missing on the server.'},
+                        status=status.HTTP_404_NOT_FOUND)
 
-    if diagram.verified:
-        diagram_path = os.path.join(diagram_folder_path, 'verified_diagram.bpmn')
-    else:
-        diagram_path = os.path.join(diagram_folder_path, 'diagram.bpmn')
+    folder = os.path.dirname(original_path)
+    rel = os.path.relpath(folder, settings.MEDIA_ROOT).replace(os.sep, '/')
+    verified_path = os.path.join(folder, 'verified_diagram.bpmn')
+    try:
+        shutil.copyfile(original_path, verified_path)  
+        messages_fr, messages_en = _run_checks(verified_path)
+        _write_reports(messages_fr, messages_en, folder, os.path.basename(original_path))
+    except Exception:
+        logger.error("Error verifying diagram %s", diagram_id, exc_info=True)
+        return Response({'detail': 'Verification failed on the server.'},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    if os.path.exists(diagram_path):
-        file_url = (f"/media/user_{request.user.id}/project_{project_id}/"
-                    f"diagram_{diagram_id}/{os.path.basename(diagram_path)}")
-        return JsonResponse({'filename': file_url})
-    return HttpResponse(status=404)
+    verified_at = timezone.now()
+    payload = build_payload(
+        messages_fr, messages_en,
+        filename=default_storage.url(f'{rel}/verified_diagram.bpmn'),
+        report_url=default_storage.url(f'{rel}/report.docx'),
+        report_url_en=default_storage.url(f'{rel}/reportENG.docx'),
+        verified_at=verified_at,
+    )
+    diagram.verified = True
+    diagram.last_verified_at = verified_at
+    diagram.last_result = payload
+    diagram.save(update_fields=['verified', 'last_verified_at', 'last_result'])
+    return Response(payload)
+
+
+@api_view(['GET'])
+def get_last_result(request, project_id, diagram_id):
+    """Result of the last verification (204 if the diagram was never verified)."""
+    diagram = get_object_or_404(
+        Diagram, id=diagram_id, project_id=project_id, project__owner=request.user)
+    if not diagram.last_result:
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    return Response(diagram.last_result)
+
 
 @api_view(['POST'])
 def upload_and_verify_diagram(request):
+    """Verify a .bpmn file sent directly (not stored in any project)."""
+    uploaded = request.FILES.get('file')
+    if uploaded is None or not uploaded.name.lower().endswith('.bpmn'):
+        return Response({'detail': 'Please send a .bpmn file.'}, status=status.HTTP_400_BAD_REQUEST)
+    if uploaded.size > MAX_UPLOAD_BYTES:
+        return Response({'detail': 'The file is larger than 5 MB.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    rel = f'uploads/user_{request.user.id}'
+    folder = os.path.join(settings.MEDIA_ROOT, 'uploads', f'user_{request.user.id}')
+    os.makedirs(folder, exist_ok=True)
+    original_path = os.path.join(folder, 'original.bpmn')   
+    with open(original_path, 'wb') as destination:
+        for chunk in uploaded.chunks():
+            destination.write(chunk)
+    verified_path = os.path.join(folder, 'verified_diagram.bpmn')
     try:
-        logger.info("Uploading and verifying diagram")
+        shutil.copyfile(original_path, verified_path)
+        messages_fr, messages_en = _run_checks(verified_path)
+        _write_reports(messages_fr, messages_en, folder, uploaded.name)
+    except Exception:
+        logger.error("Error in upload_and_verify_diagram", exc_info=True)
+        return Response({'detail': 'Verification failed on the server.'},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        # Get the uploaded file
-        file = request.FILES['file']
-
-        # Create a unique folder for the upload
-        upload_folder_path = os.path.join(settings.MEDIA_ROOT, 'uploads', f'user_{request.user.id}')
-        if not os.path.exists(upload_folder_path):
-            os.makedirs(upload_folder_path)
-
-        # Save the uploaded file
-        original_file_path = os.path.join(upload_folder_path, file.name)
-        with open(original_file_path, 'wb+') as destination:
-            for chunk in file.chunks():
-                destination.write(chunk)
-
-        logger.info(f"Uploaded file saved at: {original_file_path}")
-
-        # Copy the original file to create a verified version
-        verified_file_path = os.path.join(upload_folder_path, 'verified_diagram.bpmn')
-        shutil.copyfile(original_file_path, verified_file_path)
-
-        # Perform verification on the copied file
-        arts ,artsENG= message(verified_file_path, verified_file_path, os.path.join(settings.MEDIA_ROOT, 'loi.txt'))
-        annotation ,annotationENG= modify_bpmn_file(verified_file_path)
-        err_contradiction , erreur_contradictionENG= erreur_contradiction(verified_file_path)
-        liste_finale = arts + annotation + err_contradiction
-        liste_finaleENG = artsENG+annotationENG+erreur_contradictionENG
-
-        # Generate report
-        report_name = 'report.docx'
-        report_path = os.path.join(upload_folder_path, report_name)
-        report_nameENG = 'reportENG.docx'
-        report_pathENG = os.path.join(upload_folder_path, report_nameENG)
-        generer_rapport(liste_finale, report_path,file.name)
-        generer_rapportENG(liste_finaleENG, report_pathENG,file.name)
-
-        # Save annotations to a file
-        with open(os.path.join(upload_folder_path, "diagram_annotations.txt"), 'a') as f:
-            for item in annotation:
-                f.write(item + "\n")
-
-        report_file_url = f'/media/uploads/user_{request.user.id}/report.docx'        
-
-        logger.info("Diagram verified successfully")
-
-        return JsonResponse({'filename': f'/media/uploads/user_{request.user.id}/verified_diagram.bpmn', 'report_url':report_file_url,'annotations': liste_finale})
-    except Exception as e:
-        logger.error(f"Error in upload_and_verify_diagram: {e}")
-        return HttpResponse(status=500, content="Internal server error")
+    return Response(build_payload(
+        messages_fr, messages_en,
+        filename=default_storage.url(f'{rel}/verified_diagram.bpmn'),
+        report_url=default_storage.url(f'{rel}/report.docx'),
+        report_url_en=default_storage.url(f'{rel}/reportENG.docx'),
+        verified_at=timezone.now(),
+    ))
