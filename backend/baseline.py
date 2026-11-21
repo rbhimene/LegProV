@@ -63,7 +63,7 @@ def run(path):
         ann, ann_en = modify_bpmn_file(work)
         con, con_en = erreur_contradiction(work)
         with open(work, "rb") as f:
-            xml_hash = hashlib.sha256(f.read()).hexdigest()
+            xml_hash = hashlib.sha256(f.read().replace(b"\r\n", b"\n")).hexdigest()
     return {
         "structural_fr": arts, "structural_en": arts_en,
         "missing_fr": ann, "missing_en": ann_en,
@@ -91,6 +91,18 @@ def main(mode):
                 expected = json.load(f)
             diffs = [k for k in expected if expected[k] != result.get(k)]
             print(f"{'OK  ' if not diffs else 'DIFF'} {name} {diffs or ''}")
+            for k in diffs:
+                old, new = expected[k], result.get(k)
+                if isinstance(old, list):
+                    for line in old:
+                        if line not in new:
+                            print(f"   - [{k}] {line[:220]}")
+                    for line in new:
+                        if line not in old:
+                            print(f"   + [{k}] {line[:220]}")
+                else:
+                    print(f"   - [{k}] {str(old)[:220]}")
+                    print(f"   + [{k}] {str(new)[:220]}")
             ok = ok and not diffs
     sys.exit(0 if ok else 1)
 
