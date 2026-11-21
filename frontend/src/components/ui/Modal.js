@@ -1,38 +1,65 @@
-import { useEffect } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { FaTimes } from 'react-icons/fa';
 
-/** Dialog. `footer` holds the action buttons. */
+const FOCUSABLE =
+  'a[href],button:not([disabled]),textarea:not([disabled]),input:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])';
+
+/** Accessible dialog: Esc / click outside closes, Tab is trapped, focus is restored. */
 const Modal = ({ open, title, onClose, children, footer }) => {
   const { t } = useTranslation();
+  const titleId = useId();
+  const dialogRef = useRef(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose; // always the latest, without re-running the effect
 
   useEffect(() => {
     if (!open) return undefined;
-    const onKey = (e) => e.key === 'Escape' && onClose();
+    const dialog = dialogRef.current;
+    const opener = document.activeElement;
+
+    // Elements with autoFocus are already focused; otherwise focus the first field/button.
+    if (!dialog.contains(document.activeElement)) {
+      (dialog.querySelector('input, textarea') || dialog.querySelector(FOCUSABLE))?.focus();
+    }
+
+    const onKey = (e) => {
+      if (e.key === 'Escape') { onCloseRef.current(); return; }
+      if (e.key !== 'Tab') return;
+      const items = [...dialog.querySelectorAll(FOCUSABLE)];
+      if (items.length === 0) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    };
+
     document.addEventListener('keydown', onKey);
-    const previous = document.body.style.overflow;
+    const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
       document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = previous;
+      document.body.style.overflow = previousOverflow;
+      opener?.focus?.();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/50" onClick={() => onCloseRef.current()} />
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
-        aria-label={title}
-        className="relative w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-xl"
+        aria-labelledby={titleId}
+        className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-border bg-surface p-6 shadow-xl"
       >
         <div className="mb-4 flex items-start justify-between gap-4">
-          <h2 className="text-lg font-semibold">{title}</h2>
-          <button type="button" onClick={onClose} aria-label={t('common.close')}
+          <h2 id={titleId} className="text-lg font-semibold">{title}</h2>
+          <button type="button" onClick={() => onCloseRef.current()} aria-label={t('common.close')}
             className="text-muted hover:text-text">
             <FaTimes />
           </button>

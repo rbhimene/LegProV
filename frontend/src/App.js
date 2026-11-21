@@ -13,6 +13,10 @@ import ProjectDetailsPage from './components/Dashboard/ProjectDetailsPage';
 import VerifFront from './components/VerifFront/VerifFront';
 import UserManagement from './components/UserManagement/UserManagement';
 import DiagramDetails from './components/DiagamDetails/DiagarmDetails';
+import RequireAdmin from './layouts/RequireAdmin';
+import Profile from './components/Profile/Profile';
+import NotFound from './components/NotFound/NotFound';
+import Activate from './components/Activate/Activate';
 import './App.css';
 
 const App = () => {
@@ -26,13 +30,18 @@ const App = () => {
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/activate/:uid/:token" element={<Activate />} />
             <Route path="/diagrams/:id" element={<DiagramDetails />} />
             <Route element={<RequireAuth />}>
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/dashboard/profile" element={<Profile />} />
               <Route path="/dashboard/project/:projectId" element={<ProjectDetailsPage />} />
               <Route path="/dashboard/project/:projectId/verify/:diagramId" element={<VerifFront />} />
-              <Route path="/dashboard/user-management" element={<UserManagement />} />
+              <Route element={<RequireAdmin />}>
+                <Route path="/dashboard/user-management" element={<UserManagement />} />
+              </Route>
             </Route>
+            <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
       </Router>

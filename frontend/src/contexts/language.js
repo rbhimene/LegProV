@@ -1,6 +1,6 @@
 // contexts/language.js
 // Thin wrapper around i18next so that existing components keep working.
-import { createContext } from 'react';
+import { createContext, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 const LanguageContext = createContext();
@@ -8,6 +8,10 @@ const LanguageContext = createContext();
 const LanguageProvider = ({ children }) => {
   const { i18n } = useTranslation();
   const currentLanguage = i18n.resolvedLanguage === 'fr' ? 'fr' : 'en';
+
+  useEffect(() => {
+    document.documentElement.lang = currentLanguage;
+  }, [currentLanguage]);
 
   const switchLanguage = () => {
     const next = currentLanguage === 'en' ? 'fr' : 'en';

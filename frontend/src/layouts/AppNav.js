@@ -42,6 +42,7 @@ const AppNav = () => {
       {userInfo.is_staff && (
         <NavLink to="/dashboard/user-management" onClick={close} className={linkClass}>{t('nav.users')}</NavLink>
       )}
+      <NavLink to="/dashboard/profile" onClick={close} className={linkClass}>{t('nav.profile')}</NavLink>
     </>
   ) : (
     <>
@@ -75,7 +76,7 @@ const AppNav = () => {
 
         <div className="flex items-center gap-1">
           <button type="button" onClick={switchLanguage} className={`${iconButton} text-sm font-semibold`}
-            aria-label="Language">
+            aria-label={t('nav.language')}>
             {currentLanguage === 'en' ? 'EN' : 'FR'}
           </button>
           <button type="button" onClick={toggleTheme} className={iconButton} aria-label={t('nav.toggleTheme')}>

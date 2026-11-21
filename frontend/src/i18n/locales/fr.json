@@ -12,7 +12,8 @@
     "showPassword": "Afficher le mot de passe",
     "hidePassword": "Masquer le mot de passe",
     "open": "Ouvrir",
-    "search": "Rechercher"
+    "search": "Rechercher",
+    "skipToContent": "Aller au contenu"
   },
   "nav": {
     "samples": "exemples de processus",
@@ -23,7 +24,22 @@
     "newProject": "Nouveau projet",
     "logout": "Déconnexion",
     "toggleNav": "Afficher le menu",
-    "toggleTheme": "Changer de thème"
+    "toggleTheme": "Changer de thème",
+    "profile": "Profil",
+    "users": "Utilisateurs",
+    "language": "Langue"
+  },
+  "session": { "expired": "Votre session a expiré. Veuillez vous reconnecter." },
+  "activate": {
+    "title": "Activation du compte",
+    "loading": "Activation de votre compte…",
+    "success": "Votre compte est actif. Vous pouvez vous connecter.",
+    "error": "Ce lien d'activation est invalide ou a déjà été utilisé."
+  },
+  "notFound": {
+    "title": "Page introuvable",
+    "text": "La page que vous cherchez n'existe pas.",
+    "home": "Retour à l'accueil"
   },
   "home": {
     "title": "Processus BPMN, ",
@@ -191,7 +207,44 @@
     "confirmDelete": "Êtes-vous sûr de vouloir supprimer cet utilisateur ?",
     "passwordMismatch": "Les mots de passe ne correspondent pas.",
     "error": "Une erreur est survenue. Veuillez réessayer.",
-    "users": "Utilisateurs"
+    "users": "Utilisateurs",
+    "subtitle": "Créez, désactivez et supprimez des comptes.",
+    "searchPlaceholder": "Rechercher par nom ou e-mail...",
+    "addUser": "Ajouter un utilisateur",
+    "createTitle": "Ajouter un utilisateur",
+    "name": "Nom",
+    "role": "Rôle",
+    "status": "Statut",
+    "admin": "Admin",
+    "member": "Membre",
+    "active": "Actif",
+    "inactive": "Inactif",
+    "you": "vous",
+    "activate": "Activer",
+    "deactivate": "Désactiver",
+    "actions": "Actions",
+    "created": "Utilisateur créé.",
+    "updated": "Utilisateur mis à jour.",
+    "deleted": "Utilisateur supprimé.",
+    "deleteTitle": "Supprimer l'utilisateur",
+    "confirmDeleteNamed": "Supprimer {{name}} ({{email}}) avec tous ses projets et diagrammes ? Cette action est irréversible.",
+    "emptyTitle": "Aucun utilisateur",
+    "noResults": "Aucun utilisateur ne correspond à votre recherche."
+  },
+  "profile": {
+    "title": "Mon profil",
+    "subtitle": "Gérez vos informations personnelles et votre mot de passe.",
+    "personal": "Informations personnelles",
+    "emailHint": "Votre e-mail sert d'identifiant et ne peut pas être modifié ici.",
+    "saveChanges": "Enregistrer",
+    "saved": "Profil mis à jour.",
+    "passwordTitle": "Changer le mot de passe",
+    "currentPassword": "Mot de passe actuel",
+    "newPassword": "Nouveau mot de passe",
+    "confirmNewPassword": "Confirmer le nouveau mot de passe",
+    "changePassword": "Changer le mot de passe",
+    "passwordChanged": "Mot de passe modifié.",
+    "error": "Impossible d'enregistrer vos modifications."
   },
   "register": {
     "title": "Créer un compte",
