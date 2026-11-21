@@ -108,12 +108,10 @@ def avoir_type(bpmnfile,id):
 
 def get_event(bpmnfile,id_event):
    msg = None
-   print(id_event)
    with open(bpmnfile, 'r') as file:
         lines = file.readlines()
    for line in lines:
         if (('id="Event' in line) and ('name="' in line)and (id_event in line)):
-            print(id_event)
             msg = re.search(r'name="([^"]+)"', line)
    if msg:
      return msg.group(1)
@@ -278,7 +276,6 @@ nlp = spacy.load("en_core_web_sm")
 def detect_between(bpmnfile,para1,para2):
     tache_col = []
     liste_des_taches = tout_chemin(bpmnfile,para1,para2)  
-    print("hello")
     finale = applatire(liste_des_taches)
     for i in finale:
         for j in finale:
@@ -365,7 +362,6 @@ def detect_C3(bpmnfile):
              content.append(test.group(1))
              my_dict[test.group(1)] = test2.group(1)
        for k in content:
-           print(my_dict)
            for p in content:
                t = oppsite(k,p) and (my_dict[k]==my_dict[p])
                if(t):
@@ -389,11 +385,9 @@ def detect_C4(bpmnfile):
         for j in liste_end:
            chemin = tout_chemin(bpmnfile,i,j)
            chemin = supprimer_doublons(chemin)
-           print(chemin.__str__())
            for t in chemin:
                for actuel, suivant in zip(t, t[1:]):
                    if(("Activity" in actuel) and ("Activity" in suivant) and (happens_before(get_task(bpmnfile,suivant),get_task(bpmnfile,actuel)))):
-                       print("mahdi" + actuel +" " +suivant )
                        tache.append(suivant)
                        tache.append(actuel)
                        messageENG.append("Contradiction, the task " +get_task(bpmnfile,suivant)+" happens befor "+get_task(bpmnfile,actuel)+"#Contradiction in the article "+get_annotation_proxy(bpmnfile,actuel).__str__()+"#Revise "+get_annotation_proxy(bpmnfile,actuel).__str__())

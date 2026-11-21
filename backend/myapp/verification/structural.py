@@ -105,7 +105,6 @@ def trouver_article(nom_fichier, nom_article ,typeErr,listeTaches):
     if(("(Nondeterministic lack of synchronization)" in typeErr) and (taches_dans_article(mesArticles.__str__(),listeTaches)) and (valide_type_err(typeErr,mesArticles.__str__()))):
             return "probleme dans or // then dans les articles suivants: "+mesArticles.__str__()+"#Reviser :"+nom_article.__str__(),"problem in or // then in the following articles : "+mesArticles.__str__()+"#Revise :"+nom_article.__str__()
     if(("(Nondeterministic deadlock)" in typeErr) and (taches_dans_article(mesArticles.__str__(),listeTaches)) and (valide_type_err(typeErr,mesArticles.__str__()))):
-            print(nom_article.__str__())
             return "probleme dans and // or dans l'article suivant:"+mesArticles.__str__()+"#Reviser :"+nom_article.__str__(),"problem in and // or in the following articles:"+mesArticles.__str__()+"#Revise :"+nom_article.__str__()
     
     return "Ambiguite dans l'article : "+mesArticles.__str__()+"#Reviser : " +mesArticles.__str__(),"Ambiguity in the article : "+mesArticles.__str__()+"#Revise : " +mesArticles.__str__()
@@ -268,17 +267,14 @@ def verif2(bpmnfile):
     for i in exclu:
         for j in para:
             list_finale = get_gateway_paths(bpmnfile,j,i)
-            print(get_gateway_paths(bpmnfile,j,i).__str__())
             nb = 0
             if((list_finale.__len__() >= 2) and (chemin_valide(list_finale)) and get_valide(bpmnfile,i)):
-              print("hello lala")
               
               for t in list_finale:
                   for k in t:
                      if(get_element_type(k,bpmnfile) == "parallelGateway"):
                          nb +=1
                   if(not(nb%2 == 0)): 
-                    print("chaima")  
                     listef.append(list_finale)
         list_finale = []
               

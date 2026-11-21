@@ -29,8 +29,6 @@ def get_nom_taches_role(bpmnfile,id):
    taches = []
    liste_elements = get_flow_node_refs_from_lane(bpmnfile,id)
    for i in liste_elements:
-     print(i)
-     print(get_element_type(i,bpmnfile))
      if("Activity" in i):
        taches.append(get_task(bpmnfile,i))
    return taches
@@ -312,7 +310,6 @@ def getways_ids2(bpmn_file_path,err):
             message.append("erreur MI"+str(err)+"#: il manque le cas de inferieur# voire l'article "+get_annotation(bpmn_file_path,i).__str__())
           if("=" not in content.__str__() and ("egale" not in content.__str__())):
             err += 1 
-            print("belkacem")
             messageENG.append("Error MI "+str(err)+"# the case of equal is missing# see the article "+get_annotation(bpmn_file_path,i).__str__()) 
             message.append("Erreur MI "+str(err)+"# il manque le cas de egale# voire l'article "+get_annotation(bpmn_file_path,i).__str__())
             colorier_task(bpmn_file_path,i)
@@ -333,7 +330,6 @@ def colorier_picine(id,liste):
    return liste
 
 def modify_bpmn_file(bpmn_file_path):
-    print('hello')
     err = 0
     with open(bpmn_file_path, 'r') as file:
         lines = file.readlines()
@@ -385,7 +381,6 @@ def modify_bpmn_file(bpmn_file_path):
                 
                 modified_lines.append(modified_line)
                 if(get_annotation_role(bpmn_file_path,i).__len__() >0):
-                 print("chikour" + get_annotation_role(bpmn_file_path,i).__str__() )
                  messageENG.append("Error MI " +str(err)+"# Missing role # Role not specified in the article : "+get_annotation_role(bpmn_file_path,i).__str__()+"#Revise the article : "+get_annotation_role(bpmn_file_path,i).__str__()+" Add the appropriate role to these tasks :"+get_nom_taches_role(bpmn_file_path,i).__str__())
                  message.append("Erreur MI " +str(err)+"# Role manquant # Role non précisé dans l'article : "+get_annotation_role(bpmn_file_path,i).__str__()+"#Reviser l'article : "+get_annotation_role(bpmn_file_path,i).__str__()+" Ajouter le rôle adéquat a ces taches :"+get_nom_taches_role(bpmn_file_path,i).__str__())
                 else:
@@ -401,11 +396,9 @@ def modify_bpmn_file(bpmn_file_path):
     with open(bpmn_file_path, 'r') as file:
       lines3 = file.readlines()
     negative = negative_event(bpmn_file_path)
-    print(negative)
     for id in negative:
        for line in lines3:
           if(("<intermediateCatchEvent" in line)and(id in line)):
-             print("hahahaha")
              err += 1
              modified_line = re.sub(r'name=""', r'name="erreur MI'+str(err)+'"', line)
              #message.append("erreur MI #" +str(err)+" negative event")
@@ -434,7 +427,6 @@ def modify_bpmn_file(bpmn_file_path):
             messageENG.append("Error MI " +str(err)+"# Legal vacuum #"+"Legal vacuum in the article : "+get_annotation_proxy(bpmn_file_path,i).__str__()+"#Revise the article : "+get_annotation_proxy(bpmn_file_path,i).__str__()+" and Add adequate information")  
             message.append("Erreur MI " +str(err)+"# Vide juridique #"+"Vide juridique dans l'article : "+get_annotation_proxy(bpmn_file_path,i).__str__()+"#Reviser l'article : "+get_annotation_proxy(bpmn_file_path,i).__str__()+" et Ajouter des informations adéquates")  
             #message.append("Erreur MI " +str(err)+"# Vide juridique # Vide juridique dans l'article : "+get_annotation_proxy(bpmn_file_path,i).__str__()+" # Reviser l'article : "+get_annotation_proxy(bpmn_file_path,i).__str__()+" Ajouter des information à :"+get_annotation_proxy(bpmn_file_path,i).__str__())
-            print(message.__str__())
             colorier_task(bpmn_file_path,i)
     message1 , message2= getways_ids2(bpmn_file_path,err)
     return message1 + message , message2+messageENG 
