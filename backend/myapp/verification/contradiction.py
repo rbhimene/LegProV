@@ -196,6 +196,8 @@ def get_antonyms(word):
     return antonyms
 
 def detect_contradiction(sent1, sent2):
+    if not sent1 or not sent2:
+        return False
     doc1 = nlp(sent1)
     doc2 = nlp(sent2)
     
@@ -273,75 +275,75 @@ def colorier_task(bpmnfile, id_task):
 nlp = spacy.load("en_core_web_sm")
 
 # --- detectors -----------------------------------------------------------
-def detect_between(bpmnfile,para1,para2):
-    tache_col = []
-    liste_des_taches = tout_chemin(bpmnfile,para1,para2)  
-    finale = applatire(liste_des_taches)
-    for i in finale:
-        for j in finale:
-            if(i != j):
-                if(detect_contradiction(get_task(bpmnfile,i),get_task(bpmnfile,j))):
-                    tache_col.append(i)
-                    tache_col.append(j)
-                    return  'Contradiction entre : '+get_task(bpmnfile,i)+get_task(bpmnfile,j)+"#Contradiction dans l'article : "+get_annotation_proxy(bpmnfile,i).__str__()+"#Reviser "+get_annotation_proxy(bpmnfile,i).__str__(),tache_col , 'Contradiction between : '+get_task(bpmnfile,i)+get_task(bpmnfile,j)+"#Contradiction in the article : "+get_annotation_proxy(bpmnfile,i).__str__()+"#Revise "+get_annotation_proxy(bpmnfile,i).__str__()
-    return False   
-                
+def detect_between(bpmnfile, para1, para2):
+    """Look for two contradicting tasks between two gateways. Returns False if none,
+    otherwise (french_message, [task ids], english_message) for the first pair found."""
+    tasks = applatire(tout_chemin(bpmnfile, para1, para2))
+    for first in tasks:
+        for second in tasks:
+            if first == second:
+                continue
+            label1, label2 = get_task(bpmnfile, first), get_task(bpmnfile, second)
+            if detect_contradiction(label1, label2):
+                articles = str(get_annotation_proxy(bpmnfile, first))
+                return (
+                    f"Contradiction entre : {label1} / {label2}#Contradiction dans l'article : {articles}#Reviser {articles}",
+                    [first, second],
+                    f"Contradiction between : {label1} / {label2}#Contradiction in the article : {articles}#Revise {articles}",
+                )
+    return False
+
+
 def detect_C1(bpmnfile):
-    finale = []
-    finaleENG = []
-    tache = []
-    liste_parallel = get_all_parallelG(bpmnfile)
-    for i in liste_parallel:
-        for j in liste_parallel:
-            if(i != j):
-                if(detect_between(bpmnfile,i,j)):
-                    message,tache_col , messageENG = detect_between(bpmnfile,i,j)
-                    for i in tache_col:
-                        tache.append(i)
-                    finale.append(message)
-                    finaleENG.append(messageENG)
-    liste_inclusive = get_all_inclusiveG(bpmnfile)
-    for i in liste_inclusive:
-        for j in liste_inclusive:
-            if(i != j):
-                if(detect_between(bpmnfile,i,j)):
-                     message,tache_col ,messageENG = detect_between(bpmnfile,i,j)
-                     for i in tache_col:
-                        tache.append(i)
-                     finale.append(message)
-                     finaleENG.append(messageENG)
-    for i in tache:
-        colorier_task(bpmnfile,i)
-    return finale ,finaleENG
+    """C1: contradictions between branches of parallel and inclusive gateways."""
+    finale, finaleENG, flagged = [], [], []
+    for gateways in (get_all_parallelG(bpmnfile), get_all_inclusiveG(bpmnfile)):
+        for first in gateways:
+            for second in gateways:
+                if first == second:
+                    continue
+                found = detect_between(bpmnfile, first, second)
+                if found:
+                    message_fr, task_ids, message_en = found
+                    flagged.extend(task_ids)
+                    finale.append(message_fr)
+                    finaleENG.append(message_en)
+    for task_id in flagged:
+        colorier_task(bpmnfile, task_id)
+    return finale, finaleENG
+
 
 def detect_C2(bpmnfile):
-     finale = []
-     tache = []
-     finaleENG = []
-     liste_start = get_start_event_ids_from_file(bpmnfile)
-     liste_end = get_end_event_ids_from_file(bpmnfile)
-     for i in liste_start:
-         for j in liste_end:
-             mes_chemin = tout_chemin(bpmnfile,i,j)
-             for k in mes_chemin:
-                 for tache1 in k:
-                     for tache2 in k:
-                         if((k.index(tache2) > k.index(tache1)) and (tache1 != tache2) and (no_event_betwen(bpmnfile,tache1,tache2)) and ("Activity" in tache1) and ("Activity" in tache2)):
-                          
-                             if(detect_contradiction(get_task(bpmnfile,tache1),get_task(bpmnfile,tache2))):
-                                 tache.append(tache1)
-                                 tache.append(tache2)
-                                 finaleENG.append("Contradiction between "+get_task(bpmnfile,tache1)+get_task(bpmnfile,tache2)+"#Contradiction in the following article : "+get_annotation_proxy(bpmnfile,tache1)+"#Revise the  article : "+get_annotation_proxy(bpmnfile,tache1))
-                                 finale.append("contradiction entre "+get_task(bpmnfile,tache1)+get_task(bpmnfile,tache2)+"#Contradiction dans l'article : "+get_annotation_proxy(bpmnfile,tache1)+"#Reviser l'article : "+get_annotation_proxy(bpmnfile,tache1))
-                         if((k.index(tache2) > k.index(tache1)) and (tache1 != tache2) and (no_task_betwen(bpmnfile,tache1,tache2)) and ("Event" in tache1) and ("Event" in tache2) and (avoir_type(bpmnfile,tache1)!="endEvent") and (avoir_type(bpmnfile,tache2)!="endEvent")):
-                             if(detect_contradiction(get_event(bpmnfile,tache1),get_event(bpmnfile,tache2))):
-                                 tache.append(tache1)
-                                 tache.append(tache2)
-                                 finaleENG.append("Contradiction between "+get_task(bpmnfile,tache1)+get_task(bpmnfile,tache2)+"#Contradiction in the following article : "+get_annotation_proxy(bpmnfile,tache1)+"#Revise the  article : "+get_annotation_proxy(bpmnfile,tache1))
-                                 finale.append("contradiction entre "+get_event(bpmnfile,tache1)+get_event(bpmnfile,tache2)+"#Contradiction dans l'article : "+get_annotation_proxy(bpmnfile,tache1)+"#Reviser l'article : "+get_annotation_proxy(bpmnfile,tache1))
-     for i in tache:
-         colorier_task(bpmnfile,i)
-     return finale  , finaleENG                                
+    """C2: contradictions between tasks (or events) following each other on the
+    same path from a start event to an end event."""
+    finale, finaleENG, flagged = [], [], []
+    ends = get_end_event_ids_from_file(bpmnfile)
+    for start in get_start_event_ids_from_file(bpmnfile):
+        for end in ends:
+            for path in tout_chemin(bpmnfile, start, end):
+                for first in path:
+                    for second in path:
+                        if path.index(second) <= path.index(first):
+                            continue          # only look forward along the path
+                        if ("Activity" in first and "Activity" in second
+                                and no_event_betwen(bpmnfile, first, second)):
+                            label1, label2 = get_task(bpmnfile, first), get_task(bpmnfile, second)
+                        elif ("Event" in first and "Event" in second
+                                and avoir_type(bpmnfile, first) != "endEvent"
+                                and avoir_type(bpmnfile, second) != "endEvent"
+                                and no_task_betwen(bpmnfile, first, second)):
+                            label1, label2 = get_event(bpmnfile, first), get_event(bpmnfile, second)
+                        else:
+                            continue
+                        if not detect_contradiction(label1, label2):
+                            continue
+                        flagged.extend([first, second])
+                        articles = str(get_annotation_proxy(bpmnfile, first))
+                        finale.append(f"Contradiction entre {label1} / {label2}#Contradiction dans l'article : {articles}#Reviser l'article : {articles}")
+                        finaleENG.append(f"Contradiction between {label1} / {label2}#Contradiction in the following article : {articles}#Revise the article : {articles}")
+    for element_id in flagged:
+        colorier_task(bpmnfile, element_id)
+    return finale, finaleENG                              
                           
 def detect_C3(bpmnfile):
     liste_exclu = get_all_exclusiveG(bpmnfile)

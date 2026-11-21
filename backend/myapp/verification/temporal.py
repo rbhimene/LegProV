@@ -61,8 +61,7 @@ temporal_relations = {
     "decide": ["plan", "execute", "complete"],
     "train": ["execute", "evaluate"],
     "learn": ["apply", "review"],
-    "fill out" : ["submit","Publish"],
-    "complete" : ["submit"],
+    "fill": ["submit", "publish"],
     "apply": ["review", "execute"],
     "negotiate": ["finalize", "agree"],
     "agree": ["execute", "complete"],
@@ -141,6 +140,8 @@ def happens_before(sent1, sent2):
     :param sent2: str - The second sentence
     :return: bool - True if sent1 happens before sent2, False otherwise
     """
+    if not sent1 or not sent2:
+        return None
     doc1 = nlp(translate_if_french(sent1))
     doc2 = nlp(translate_if_french(sent2))
 

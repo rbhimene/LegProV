@@ -119,13 +119,18 @@ def get_element_type(id,bpmnfile):
              if(match):
               return match.group(1)
 
-def get_task(bpmnfile,id_tache):
-   with open(bpmnfile, 'r', encoding='utf-8') as file:
+def get_task(bpmnfile, id_tache):
+    """Return the label of a task, sendTask or receiveTask ('' if it has no name
+    or is not a task)."""
+    found = None
+    with open(bpmnfile, 'r', encoding='utf-8') as file:
         lines = file.readlines()
-   for line in lines:
+    for line in lines:
         if (("<task" in line) or ("<sendTask" in line) or ("<receiveTask" in line)) and (id_tache in line):
-            msg = re.search(r'name="([^"]+)"', line)
-   return msg.group(1)
+            match = re.search(r'name="([^"]+)"', line)
+            if match:
+                found = match
+    return found.group(1) if found else ''
 
 def get_annotation2(bpmn_file_path,id):
    msg = []
@@ -203,18 +208,17 @@ def remove_duplicates(list_of_lists):
     return [list(t) for t in set_of_tuples]
     
 # --- 3. S detectors ------------------------------------------------------    
-def dfs(bpmnfile,graph, start, end, path=[], paths=[]):
-    path = path + [start]
-    
+def dfs(bpmnfile, graph, start, end, path=None, paths=None):
+    """Depth-first search of all paths start -> end that stop at end events."""
+    path = (path or []) + [start]
+    paths = [] if paths is None else paths
     if start == end:
-       paths.append(path)
-       return paths
-    if((get_element_type(start,bpmnfile)!="endEvent") and (start in graph)):
-        
-        
+        paths.append(path)
+        return paths
+    if (get_element_type(start, bpmnfile) != "endEvent") and (start in graph):
         for neighbor in graph[start]:
             if neighbor not in path:
-                paths = dfs(bpmnfile,graph, neighbor, end, path, paths)
+                paths = dfs(bpmnfile, graph, neighbor, end, path, paths)
     return paths
 
 def get_gateway_paths(xml_file, start_gateway_id, end_gateway_id):
