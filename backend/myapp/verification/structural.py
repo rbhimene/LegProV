@@ -111,7 +111,7 @@ def trouver_article(nom_fichier, nom_article ,typeErr,listeTaches):
 
 # --- 2. BPMN reading helpers ---------------------------------------------
 def get_element_type(id,bpmnfile):
-     with open(bpmnfile, 'r') as file:
+     with open(bpmnfile, 'r', encoding='utf-8') as file:
        lines = file.readlines()
      for i in lines:
          if(('id="'+id+'"')in i):
@@ -120,7 +120,7 @@ def get_element_type(id,bpmnfile):
               return match.group(1)
 
 def get_task(bpmnfile,id_tache):
-   with open(bpmnfile, 'r') as file:
+   with open(bpmnfile, 'r', encoding='utf-8') as file:
         lines = file.readlines()
    for line in lines:
         if (("<task" in line) or ("<sendTask" in line) or ("<receiveTask" in line)) and (id_tache in line):
@@ -129,7 +129,7 @@ def get_task(bpmnfile,id_tache):
 
 def get_annotation2(bpmn_file_path,id):
    msg = []
-   with open(bpmn_file_path, 'r') as file:
+   with open(bpmn_file_path, 'r', encoding='utf-8') as file:
         lines = file.readlines()
    for line in lines:
         if ("<association" in line) and (id in line):
@@ -143,7 +143,7 @@ def get_annotation2(bpmn_file_path,id):
    return msg
 
 def has_no_next(bpmnfile,id):
-    with open(bpmnfile, 'r') as file:
+    with open(bpmnfile, 'r', encoding='utf-8') as file:
         lines = file.readlines()
     for i in lines:
         if(('sourceRef="'+id) in i):
@@ -153,7 +153,7 @@ def has_no_next(bpmnfile,id):
 def get_valide(bpmnfile,id):
      cpt1 = 0 
      cpt2 = 0
-     with open(bpmnfile, 'r') as file:
+     with open(bpmnfile, 'r', encoding='utf-8') as file:
         lines = file.readlines()
      for i in lines:
          if(("sourceRef=" +'"'+id) in i):
@@ -164,7 +164,7 @@ def get_valide(bpmnfile,id):
 
 def get_all_exclusiveG(bpmnfile):
      my_list = []
-     with open(bpmnfile, 'r') as file:
+     with open(bpmnfile, 'r', encoding='utf-8') as file:
         lines = file.readlines()
      for i in lines:
          if ("<exclusiveGateway" in i):
@@ -174,7 +174,7 @@ def get_all_exclusiveG(bpmnfile):
 
 def get_all_inclusiveG(bpmnfile):
      my_list = []
-     with open(bpmnfile, 'r') as file:
+     with open(bpmnfile, 'r', encoding='utf-8') as file:
         lines = file.readlines()
      for i in lines:
          if ("<inclusiveGateway" in i):
@@ -184,7 +184,7 @@ def get_all_inclusiveG(bpmnfile):
 
 def get_all_parallelG(bpmnfile):
      my_list = []
-     with open(bpmnfile, 'r') as file:
+     with open(bpmnfile, 'r', encoding='utf-8') as file:
         lines = file.readlines()
      for i in lines:
          if ("<parallelGateway" in i):
@@ -309,11 +309,11 @@ def verif4(bpmnfile):
     return listef 
 
 def modifier_noms(bpmnfile, id_liste, nouveau_nom):
-   with open(bpmnfile, 'r') as file:
+   with open(bpmnfile, 'r', encoding='utf-8') as file:
      lines = file.readlines()
    nv_lines = []
    for i in id_liste:
-       with open(bpmnfile, 'r') as file:
+       with open(bpmnfile, 'r', encoding='utf-8') as file:
          lines = file.readlines() 
        for line in lines:
            if(("<task" in line) and (i in line)):
@@ -328,7 +328,7 @@ def modifier_noms(bpmnfile, id_liste, nouveau_nom):
                     nv_lines.append(nv_line)
            else:
                nv_lines.append(line)
-       with open(bpmnfile, 'w') as file:
+       with open(bpmnfile, 'w', encoding='utf-8') as file:
             file.truncate(0)
             file.writelines(nv_lines)
        nv_lines = []
@@ -366,7 +366,7 @@ def colorier_chemin(bpmnfile):
     retoure = []
    
     final = []
-    with open(bpmnfile, 'r') as file:
+    with open(bpmnfile, 'r', encoding='utf-8') as file:
         lines = file.readlines()
     for i in chemin:
         for j in i:
@@ -380,12 +380,12 @@ def colorier_chemin(bpmnfile):
                         
                     else:
                         final.append(t)
-                with open(bpmnfile, 'w') as file:
+                with open(bpmnfile, 'w', encoding='utf-8') as file:
                     file.truncate(0)
                     file.writelines(final)
                     final=[]
                 lines = []
-                with open(bpmnfile, 'r') as file:
+                with open(bpmnfile, 'r', encoding='utf-8') as file:
                    lines = file.readlines()
     return chemin ,exclu ,para , inclu 
 
@@ -417,7 +417,7 @@ def message(bpmnfile,bpmnfile2,fichier_loi):
         err+=1
         for j in i:
             modifier_noms(bpmnfile,j,"Erreur S "+str(err))
-    with open(bpmnfile, 'r') as file:
+    with open(bpmnfile, 'r', encoding='utf-8') as file:
         lines = file.readlines()
     for line in lines:
         if("<task" in line):

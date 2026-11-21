@@ -30,7 +30,7 @@ import re
 # --- graph helpers -------------------------------------------------------
 def tout_chemin(xml_file, start_gateway_id, end_gateway_id):
     graph = {}
-    with open(xml_file, 'r') as file:
+    with open(xml_file, 'r', encoding='utf-8') as file:
         lines = file.readlines()
 
     i = 0
@@ -80,7 +80,7 @@ def dfs(current_path, graph, node, end, all_paths):
 def get_annotation_proxy(bpmnfile,id):
    loi = []
    id_list = []
-   with open(bpmnfile, 'r') as file:
+   with open(bpmnfile, 'r', encoding='utf-8') as file:
       lines = file.readlines()
    for line in lines:
       if((('sourceRef="'+id) in line) ):
@@ -97,7 +97,7 @@ def get_annotation_proxy(bpmnfile,id):
    return clean_list(supprimer_doublons(loi))
 
 def avoir_type(bpmnfile,id):
-    with open(bpmnfile, 'r') as file:
+    with open(bpmnfile, 'r', encoding='utf-8') as file:
         lines = file.readlines()
     for i in lines:
         if (('id="'+id+'"') in i):
@@ -108,7 +108,7 @@ def avoir_type(bpmnfile,id):
 
 def get_event(bpmnfile,id_event):
    msg = None
-   with open(bpmnfile, 'r') as file:
+   with open(bpmnfile, 'r', encoding='utf-8') as file:
         lines = file.readlines()
    for line in lines:
         if (('id="Event' in line) and ('name="' in line)and (id_event in line)):
@@ -118,7 +118,7 @@ def get_event(bpmnfile,id_event):
    
 def get_start_event_ids_from_file(bpmnfile):
     # Read the file
-    with open(bpmnfile, 'r') as file:
+    with open(bpmnfile, 'r', encoding='utf-8') as file:
         lines = file.readlines()
     
     # Join lines to create a single string
@@ -134,7 +134,7 @@ def get_start_event_ids_from_file(bpmnfile):
 
 def get_end_event_ids_from_file(bpmnfile):
     # Read the file
-    with open(bpmnfile, 'r') as file:
+    with open(bpmnfile, 'r', encoding='utf-8') as file:
         lines = file.readlines()
     
     # Join lines to create a single string
@@ -348,7 +348,7 @@ def detect_C3(bpmnfile):
     exclu = []
     message = []
     messageENG = []
-    with open(bpmnfile, 'r') as file:
+    with open(bpmnfile, 'r', encoding='utf-8') as file:
         lines = file.readlines()
     
     for i in liste_exclu:

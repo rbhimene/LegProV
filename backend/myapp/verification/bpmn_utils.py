@@ -28,7 +28,7 @@ def color_task(bpmnfile, id_task, palette):
     """
     stroke, fill = palette
     new_lines = []
-    with open(bpmnfile, 'r') as file:
+    with open(bpmnfile, 'r', encoding='utf-8') as file:
         lines = file.readlines()
     for line in lines:
         if ("<bpmndi:BPMNShape" in line) and (id_task in line) and ("bioc:stroke" not in line):
@@ -39,7 +39,7 @@ def color_task(bpmnfile, id_task, palette):
             )
         else:
             new_lines.append(line)
-    with open(bpmnfile, 'w') as file:
+    with open(bpmnfile, 'w', encoding='utf-8') as file:
         file.truncate(0)
         file.writelines(new_lines)
 
@@ -61,7 +61,7 @@ def get_lane_id_from_flow_node(bpmn_file_path, flow_node_id):
     element, or "" if none is found. Used to find the role of a task.
     """
     lane_id = ""
-    with open(bpmn_file_path, 'r') as file:
+    with open(bpmn_file_path, 'r', encoding='utf-8') as file:
         lines = file.readlines()
 
     for line in lines:
